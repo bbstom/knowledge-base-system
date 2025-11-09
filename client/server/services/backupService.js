@@ -79,33 +79,104 @@ class BackupService {
       // 从环境变量获取数据库连接信息
       const mongoUri = process.env.USER_MONGO_URI;
       if (!mongoUri) {
-        throw new Error('未配置数据库连接');
+        console.warn('⚠️  未配置 USER_MONGO_URI，跳过数据库备份');
+        return true;
       }
 
-      // 解析MongoDB URI
-      const uriMatch = mongoUri.match(/mongodb:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
-      if (!uriMatch) {
-        throw new Error('无法解析数据库连接字符串');
+      // 首先尝试使用 mongodump（如果可用）
+      try {
+        await this.backupDatabaseWithMongodump(dbPath, mongoUri);
+        console.log('✅ 数据库备份完成（使用 mongodump）');
+        return true;
+      } catch (mongodumpError) {
+        console.warn('⚠️  mongodump 不可用，尝试使用原生驱动备份...');
+        console.warn('   错误:', mongodumpError.message);
+        
+        // 使用 MongoDB 原生驱动备份
+        await this.backupDatabaseWithDriver(dbPath);
+        console.log('✅ 数据库备份完成（使用原生驱动）');
+        return true;
       }
-
-      const [, username, password, host, port, database] = uriMatch;
-
-      // 使用mongodump备份
-      const dumpCmd = `mongodump --host ${host} --port ${port} --username ${username} --password ${password} --authenticationDatabase admin --db ${database} --out "${dbPath}"`;
-      
-      console.log('执行备份命令...');
-      const { stdout, stderr } = await execAsync(dumpCmd);
-      
-      if (stderr && !stderr.includes('done')) {
-        console.warn('⚠️  备份警告:', stderr);
-      }
-      
-      console.log('✅ 数据库备份完成');
-      return true;
     } catch (error) {
       console.error('❌ 数据库备份失败:', error.message);
-      throw error;
+      console.warn('⚠️  继续备份其他内容...');
+      return false;
     }
+  }
+
+  /**
+   * 使用 mongodump 备份数据库
+   */
+  async backupDatabaseWithMongodump(dbPath, mongoUri) {
+    // 解析MongoDB URI
+    const uriMatch = mongoUri.match(/mongodb:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/([^?]+)/);
+    if (!uriMatch) {
+      throw new Error('无法解析数据库连接字符串');
+    }
+
+    const [, username, password, host, port, database] = uriMatch;
+
+    // 使用mongodump备份
+    const dumpCmd = `mongodump --host ${host} --port ${port} --username ${username} --password ${password} --authenticationDatabase admin --db ${database} --out "${dbPath}"`;
+    
+    const { stdout, stderr } = await execAsync(dumpCmd);
+    
+    if (stderr && !stderr.includes('done')) {
+      console.warn('⚠️  备份警告:', stderr);
+    }
+  }
+
+  /**
+   * 使用 MongoDB 原生驱动备份数据库
+   */
+  async backupDatabaseWithDriver(dbPath) {
+    const mongoose = require('mongoose');
+    const connection = userConnection;
+
+    if (!connection || connection.readyState !== 1) {
+      throw new Error('数据库未连接');
+    }
+
+    // 获取所有集合
+    const collections = await connection.db.listCollections().toArray();
+    console.log(`📊 找到 ${collections.length} 个集合`);
+
+    // 备份每个集合
+    for (const collectionInfo of collections) {
+      const collectionName = collectionInfo.name;
+      console.log(`  备份集合: ${collectionName}`);
+      
+      try {
+        const collection = connection.db.collection(collectionName);
+        const documents = await collection.find({}).toArray();
+        
+        // 保存为 JSON 文件
+        const collectionPath = path.join(dbPath, `${collectionName}.json`);
+        await fs.writeFile(
+          collectionPath,
+          JSON.stringify(documents, null, 2),
+          'utf8'
+        );
+        
+        console.log(`  ✅ ${collectionName}: ${documents.length} 条记录`);
+      } catch (error) {
+        console.warn(`  ⚠️  ${collectionName} 备份失败:`, error.message);
+      }
+    }
+
+    // 保存备份元数据
+    const metadata = {
+      backupDate: new Date().toISOString(),
+      backupMethod: 'native-driver',
+      collections: collections.map(c => c.name),
+      totalCollections: collections.length
+    };
+    
+    await fs.writeFile(
+      path.join(dbPath, '_metadata.json'),
+      JSON.stringify(metadata, null, 2),
+      'utf8'
+    );
   }
 
   /**
