@@ -386,14 +386,56 @@ class BackupService {
     const clientPath = path.join(tempPath, 'client');
     await fs.mkdir(clientPath, { recursive: true });
 
-    const clientDir = path.join(__dirname, '../../client/dist');
+    // 项目根目录（前端代码在根目录，不是 client 子目录）
+    const projectRoot = path.join(__dirname, '../..');
+    const excludeDirs = ['node_modules', 'dist', '.git', 'server', 'backups', 'temp'];
     
     try {
-      await fs.access(clientDir);
-      await this.copyDirectory(clientDir, clientPath);
-      console.log('✅ 前端构建文件备份完成');
+      // 备份前端源代码（src 目录和配置文件）
+      const srcDir = path.join(projectRoot, 'src');
+      try {
+        await fs.access(srcDir);
+        await this.copyDirectory(srcDir, path.join(clientPath, 'src'));
+        console.log('✅ 前端源代码备份完成');
+      } catch (error) {
+        console.warn('⚠️  前端源代码目录不存在');
+      }
+
+      // 备份前端配置文件
+      const configFiles = [
+        'package.json',
+        'package-lock.json',
+        'vite.config.ts',
+        'tsconfig.json',
+        'tsconfig.node.json',
+        'tailwind.config.js',
+        'index.html',
+        '.gitignore'
+      ];
+
+      for (const file of configFiles) {
+        const filePath = path.join(projectRoot, file);
+        try {
+          await fs.access(filePath);
+          await fs.copyFile(filePath, path.join(clientPath, file));
+        } catch (error) {
+          // 文件不存在，跳过
+        }
+      }
+      console.log('✅ 前端配置文件备份完成');
+
+      // 备份前端构建文件（如果存在）
+      const distDir = path.join(projectRoot, 'dist');
+      try {
+        await fs.access(distDir);
+        await this.copyDirectory(distDir, path.join(clientPath, 'dist'));
+        console.log('✅ 前端构建文件备份完成');
+      } catch (error) {
+        console.warn('⚠️  前端构建文件不存在，跳过');
+      }
     } catch (error) {
-      console.warn('⚠️  前端构建文件不存在，跳过');
+      console.error('❌ 前端代码备份失败:', error.message);
+      throw error;
     }
     
     return true;
