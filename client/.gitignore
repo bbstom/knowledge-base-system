@@ -1,0 +1,76 @@
+# 依赖
+node_modules/
+*/node_modules/
+package-lock.json
+yarn.lock
+
+# 环境变量（敏感信息）
+.env
+.env.local
+.env.production
+server/.env
+client/.env
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# 备份文件
+backups/
+server/backups/
+*.zip
+*.tar.gz
+
+# 上传文件
+uploads/
+server/uploads/
+
+# 临时文件
+tmp/
+temp/
+server/temp/
+
+# 构建输出
+dist/
+build/
+client/dist/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# PM2
+.pm2/
+ecosystem.config.js
+
+# 临时文档（排除开发过程中的临时文档）
+*_SUMMARY.md
+*_COMPLETE.md
+*_FIX.md
+*_CHECK.md
+*_DEBUG.md
+*_ANALYSIS.md
+*_STATUS.md
+*_IMPLEMENTATION*.md
+*_OPTIMIZATION*.md
+*_PROGRESS.md
+*_IMPROVEMENTS.md
+*_DEPLOYMENT.md
+*_TEST*.md
+*_ISSUE*.md
+
+# 保留重要的指南文档
+!GITHUB_UPLOAD_GUIDE.md
+!PRODUCTION_DEPLOYMENT_GUIDE.md
+!CONTRIBUTING.md
+!CHANGELOG.md

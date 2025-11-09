@@ -1,0 +1,47 @@
+# 依赖
+node_modules/
+package-lock.json
+
+# 环境变量（敏感信息）
+.env
+.env.local
+.env.production
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 备份文件
+backups/
+*.zip
+*.tar.gz
+
+# 上传文件
+uploads/
+
+# 临时文件
+tmp/
+temp/
+
+# 操作系统
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 构建输出
+dist/
+build/
+
+# PM2
+.pm2/
+ecosystem.config.js
