@@ -119,10 +119,20 @@ class BackupService {
     // 使用mongodump备份
     const dumpCmd = `mongodump --host ${host} --port ${port} --username ${username} --password ${password} --authenticationDatabase admin --db ${database} --out "${dbPath}"`;
     
-    const { stdout, stderr } = await execAsync(dumpCmd);
-    
-    if (stderr && !stderr.includes('done')) {
-      console.warn('⚠️  备份警告:', stderr);
+    try {
+      const { stdout, stderr } = await execAsync(dumpCmd);
+      
+      // 检查是否真的成功
+      if (stderr && (stderr.includes('not found') || stderr.includes('command not found'))) {
+        throw new Error('mongodump 命令不可用');
+      }
+      
+      if (stderr && !stderr.includes('done')) {
+        console.warn('⚠️  备份警告:', stderr);
+      }
+    } catch (error) {
+      // 确保抛出异常以触发降级逻辑
+      throw new Error(`mongodump 执行失败: ${error.message}`);
     }
   }
 
