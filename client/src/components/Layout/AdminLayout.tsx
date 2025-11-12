@@ -14,7 +14,8 @@ import {
     Menu,
     X,
     LogOut,
-    Shield
+    Shield,
+    Gift
 } from 'lucide-react';
 import { Container } from '../Container';
 import { MenuItemWithSubmenu } from '../Admin/MenuItemWithSubmenu';
@@ -98,6 +99,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             title: '系统设置',
             icon: Settings,
             path: '/admin/settings'
+        },
+        {
+            title: '抽奖管理',
+            icon: Gift,
+            path: '/admin/lottery'
         },
         {
             title: '邮件管理',

@@ -77,7 +77,7 @@ router.get('/stats', authMiddleware, adminMiddleware, async (req, res) => {
       createdAt: { $gte: monthStart } 
     });
     const vipUsers = await User.countDocuments({ 
-      vipStatus: { $ne: 'none' } 
+      vipStatus: { $in: ['bronze', 'silver', 'gold', 'platinum', 'diamond'] } 
     });
 
     // 财务统计
@@ -503,6 +503,372 @@ router.get('/financial-report', authMiddleware, adminMiddleware, async (req, res
     res.status(500).json({
       success: false,
       message: '获取财务报告失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 获取用户列表
+ * GET /api/admin/users?page=1&limit=10&search=&vipFilter=all
+ */
+router.get('/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { 
+      page = 1, 
+      limit = 10, 
+      search = '', 
+      vipFilter = 'all' 
+    } = req.query;
+
+    console.log(`\n👥 管理员请求用户列表 (页码: ${page}, 每页: ${limit}, 搜索: ${search || '无'}, VIP过滤: ${vipFilter})`);
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = parseInt(limit);
+
+    // 构建查询条件
+    const query = {};
+
+    // 搜索条件
+    if (search) {
+      query.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { referralCode: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // VIP过滤
+    if (vipFilter !== 'all') {
+      if (vipFilter === 'none') {
+        query.$or = [
+          { vipStatus: 'none' },
+          { vipStatus: { $exists: false } },
+          { vipStatus: null }
+        ];
+      } else if (vipFilter === 'vip') {
+        query.vipStatus = { $in: ['bronze', 'silver', 'gold', 'platinum', 'diamond'] };
+      } else {
+        // 特定VIP等级
+        query.vipStatus = vipFilter;
+      }
+    }
+
+    // 获取总数
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limitNum);
+
+    // 获取用户列表
+    const users = await User.find(query)
+      .select('-password')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .populate('referredBy', 'username')
+      .lean();
+
+    // 为每个用户添加统计数据
+    const usersWithStats = await Promise.all(users.map(async (user) => {
+      // 获取推荐用户数
+      const totalReferrals = await User.countDocuments({ referredBy: user._id });
+      
+      // 获取搜索次数
+      const totalSearches = await SearchLog.countDocuments({ userId: user._id });
+      
+      // 获取总佣金收入
+      const commissionLogs = await BalanceLog.find({ 
+        userId: user._id, 
+        currency: 'commission',
+        type: { $in: ['commission', 'referral_bonus', 'referral_reward'] }
+      });
+      const totalCommission = commissionLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+
+      return {
+        id: user._id.toString(),
+        username: user.username,
+        email: user.email,
+        vipStatus: user.vipStatus || 'none',
+        balance: user.balance || 0,
+        points: user.points || 0,
+        commission: user.commission || 0,
+        referralCode: user.referralCode || '',
+        referredBy: user.referredBy?._id?.toString() || null,
+        referredByUsername: user.referredBy?.username || null,
+        totalReferrals,
+        totalCommission: parseFloat(totalCommission.toFixed(2)),
+        totalSearches,
+        createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt || user.createdAt
+      };
+    }));
+
+    console.log(`✅ 返回 ${usersWithStats.length} 个用户 (共 ${totalUsers} 个)`);
+
+    res.json({
+      success: true,
+      data: {
+        users: usersWithStats,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages,
+          totalUsers,
+          limit: limitNum
+        }
+      }
+    });
+  } catch (error) {
+    console.error('❌ 获取用户列表失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户列表失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 获取用户详细信息
+ * GET /api/admin/users/:userId
+ */
+router.get('/users/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`\n👤 管理员请求用户详情: ${userId}`);
+
+    const user = await User.findById(userId)
+      .select('-password')
+      .populate('referredBy', 'username email')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      });
+    }
+
+    // 获取推荐用户列表
+    const referralUsers = await User.find({ referredBy: userId })
+      .select('username email createdAt totalRecharged')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const referralUsersWithStats = await Promise.all(referralUsers.map(async (refUser) => {
+      // 获取该用户产生的佣金
+      const commissionLogs = await BalanceLog.find({
+        userId: userId,
+        type: { $in: ['commission', 'referral_bonus', 'referral_reward'] },
+        description: { $regex: refUser.username, $options: 'i' }
+      });
+      const commission = commissionLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+
+      return {
+        id: refUser._id.toString(),
+        username: refUser.username,
+        email: refUser.email,
+        createdAt: refUser.createdAt,
+        totalRecharge: refUser.totalRecharged || 0,
+        commission: parseFloat(commission.toFixed(2)),
+        level: 1
+      };
+    }));
+
+    // 获取积分记录
+    const pointsRecords = await BalanceLog.find({
+      userId: userId,
+      currency: 'points'
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const pointsRecordsFormatted = pointsRecords.map(record => ({
+      id: record._id.toString(),
+      amount: record.amount,
+      type: record.type,
+      description: record.description || '积分变动',
+      createdAt: record.createdAt
+    }));
+
+    // 获取佣金记录
+    const commissionRecords = await BalanceLog.find({
+      userId: userId,
+      currency: 'commission'
+    })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const commissionRecordsFormatted = commissionRecords.map(record => ({
+      id: record._id.toString(),
+      amount: Math.abs(record.amount),
+      fromUser: record.description?.match(/来自用户[：:]\s*(\S+)/)?.[1] || '系统',
+      type: record.type,
+      description: record.description || '佣金变动',
+      createdAt: record.createdAt
+    }));
+
+    // 获取搜索记录
+    const searchRecords = await SearchLog.find({ userId: userId })
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const searchRecordsFormatted = searchRecords.map(record => ({
+      id: record._id.toString(),
+      type: record.type || 'unknown',
+      query: record.query || '',
+      database: record.database || '未知',
+      cost: record.cost || 0,
+      status: record.resultCount > 0 ? 'success' : 'failed',
+      createdAt: record.createdAt
+    }));
+
+    console.log(`✅ 返回用户详情: ${user.username}`);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id.toString(),
+          username: user.username,
+          email: user.email,
+          vipStatus: user.vipStatus || 'none',
+          balance: user.balance || 0,
+          points: user.points || 0,
+          commission: user.commission || 0,
+          referralCode: user.referralCode || '',
+          referredBy: user.referredBy?._id?.toString() || null,
+          referredByUsername: user.referredBy?.username || null,
+          createdAt: user.createdAt,
+          lastLoginAt: user.lastLoginAt || user.createdAt
+        },
+        referralUsers: referralUsersWithStats,
+        pointsRecords: pointsRecordsFormatted,
+        commissionRecords: commissionRecordsFormatted,
+        searchRecords: searchRecordsFormatted
+      }
+    });
+  } catch (error) {
+    console.error('❌ 获取用户详情失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取用户详情失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 重置用户密码
+ * POST /api/admin/users/:userId/reset-password
+ */
+router.post('/users/:userId/reset-password', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+
+    console.log(`\n🔑 管理员重置用户密码: ${userId}`);
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: '密码至少需要6位'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      });
+    }
+
+    // 加密新密码
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    user.password = hashedPassword;
+    await user.save();
+
+    console.log(`✅ 用户 ${user.username} 的密码已重置`);
+
+    res.json({
+      success: true,
+      message: '密码重置成功'
+    });
+  } catch (error) {
+    console.error('❌ 重置密码失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '重置密码失败',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * 删除用户
+ * DELETE /api/admin/users/:userId
+ */
+router.delete('/users/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log(`\n🗑️  管理员删除用户: ${userId}`);
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '用户不存在'
+      });
+    }
+
+    // 防止删除管理员账户
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: '不能删除管理员账户'
+      });
+    }
+
+    // 删除用户相关数据
+    console.log(`  删除用户 ${user.username} 的相关数据...`);
+    
+    // 删除用户的搜索记录
+    const searchLogsDeleted = await SearchLog.deleteMany({ userId: userId });
+    console.log(`  - 删除 ${searchLogsDeleted.deletedCount} 条搜索记录`);
+
+    // 删除用户的余额日志
+    const balanceLogsDeleted = await BalanceLog.deleteMany({ userId: userId });
+    console.log(`  - 删除 ${balanceLogsDeleted.deletedCount} 条余额日志`);
+
+    // 删除用户的提现订单
+    const withdrawOrdersDeleted = await WithdrawOrder.deleteMany({ userId: userId });
+    console.log(`  - 删除 ${withdrawOrdersDeleted.deletedCount} 条提现订单`);
+
+    // 更新被该用户推荐的用户（清除推荐关系）
+    const referredUsersUpdated = await User.updateMany(
+      { referredBy: userId },
+      { $unset: { referredBy: '' } }
+    );
+    console.log(`  - 更新 ${referredUsersUpdated.modifiedCount} 个被推荐用户的推荐关系`);
+
+    // 最后删除用户
+    await User.findByIdAndDelete(userId);
+
+    console.log(`✅ 用户 ${user.username} 及其相关数据已删除`);
+
+    res.json({
+      success: true,
+      message: '用户删除成功'
+    });
+  } catch (error) {
+    console.error('❌ 删除用户失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '删除用户失败',
       error: error.message
     });
   }

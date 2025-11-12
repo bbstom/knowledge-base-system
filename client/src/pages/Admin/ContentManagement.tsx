@@ -6,6 +6,18 @@ import toast from 'react-hot-toast';
 
 type ContentType = 'databases' | 'faq' | 'topics' | 'ads';
 
+// 安全地处理换行符，防止XSS攻击
+const formatTextWithLineBreaks = (text: string) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\n/g, '<br>');
+};
+
 export const ContentManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ContentType>('databases');
   const [databases, setDatabases] = useState<any[]>([]);
@@ -709,7 +721,10 @@ export const ContentManagement: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">{db.name}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{db.description}</p>
+                  <div 
+                    className="text-gray-600 text-sm mt-1" 
+                    dangerouslySetInnerHTML={{ __html: formatTextWithLineBreaks(db.description || '') }}
+                  />
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>来源: {db.source || '官方数据'}</span>
                     <span>记录: {db.recordCount.toLocaleString()}</span>
@@ -739,7 +754,10 @@ export const ContentManagement: React.FC = () => {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">{faq.question}</h3>
-                  <p className="text-gray-600 text-sm mt-1">{faq.answer}</p>
+                  <div 
+                    className="text-gray-600 text-sm mt-1" 
+                    dangerouslySetInnerHTML={{ __html: formatTextWithLineBreaks(faq.answer || '') }}
+                  />
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>分类: {faq.category}</span>
                     <span>排序: {faq.order}</span>

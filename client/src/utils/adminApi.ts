@@ -266,3 +266,59 @@ export const advertisementApi = {
     });
   }
 };
+
+
+// 抽奖管理API
+export const lotteryApi = {
+  // 获取所有抽奖活动
+  async getActivities(params?: { page?: number; limit?: number; isActive?: boolean }) {
+    const query = new URLSearchParams(params as any).toString();
+    return apiRequest(`/api/lottery/admin/activities?${query}`);
+  },
+
+  // 创建抽奖活动
+  async createActivity(activity: any) {
+    return apiRequest('/api/lottery/admin/activities', {
+      method: 'POST',
+      body: JSON.stringify(activity)
+    });
+  },
+
+  // 更新抽奖活动
+  async updateActivity(id: string, activity: any) {
+    return apiRequest(`/api/lottery/admin/activities/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(activity)
+    });
+  },
+
+  // 删除抽奖活动
+  async deleteActivity(id: string) {
+    return apiRequest(`/api/lottery/admin/activities/${id}`, {
+      method: 'DELETE'
+    });
+  },
+
+  // 获取抽奖记录
+  async getRecords(params?: { page?: number; limit?: number; activityId?: string; status?: string; userId?: string }) {
+    const query = new URLSearchParams(params as any).toString();
+    return apiRequest(`/api/lottery/admin/records?${query}`);
+  },
+
+  // 更新记录状态
+  async updateRecordStatus(id: string, status: string, note?: string) {
+    return apiRequest(`/api/lottery/admin/records/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, note })
+    });
+  },
+
+  // 获取活动统计
+  async getStatistics(params?: { activityId?: string; dateRange?: string }) {
+    const query = new URLSearchParams(params as any).toString();
+    return apiRequest(`/api/lottery/admin/statistics?${query}`);
+  }
+};
+
+// 导出为adminLotteryApi别名（兼容性）
+export const adminLotteryApi = lotteryApi;

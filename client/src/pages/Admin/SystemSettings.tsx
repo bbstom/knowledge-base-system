@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Tag, Coins, FileText, Globe } from 'lucide-react';
+import { Tag, Coins, FileText, Globe } from 'lucide-react';
 import { AdminLayout } from '../../components/Layout/AdminLayout';
-import { DatabaseConfig } from './DatabaseConfig';
 import { SearchTypeConfig } from './SearchTypeConfig';
 import { PointsConfig } from './PointsConfig';
 import { PointsDescriptionConfig } from './PointsDescriptionConfig';
 import { TimezoneConfig } from './TimezoneConfig';
 import { getToken } from '../../utils/auth';
 
-type SettingTab = 'searchTypes' | 'database' | 'points' | 'pointsDescription' | 'timezone';
+type SettingTab = 'searchTypes' | 'points' | 'pointsDescription' | 'timezone';
 
 export const SystemSettings: React.FC = () => {
     const [activeTab, setActiveTab] = useState<SettingTab>('searchTypes');
     const [searchTypes, setSearchTypes] = useState<any[]>([]);
-    const [userDatabase, setUserDatabase] = useState<any>({});
-    const [queryDatabases, setQueryDatabases] = useState<any[]>([]);
     const [pointsConfig, setPointsConfig] = useState<any>({});
 
     useEffect(() => {
@@ -83,50 +80,6 @@ export const SystemSettings: React.FC = () => {
                     { id: 'email', label: '邮箱', enabled: true, order: 7 }
                 ]);
 
-                // 设置数据库配置
-                const userDb = config.databases?.user;
-                console.log('📥 加载数据库配置:', userDb);
-                console.log('📊 配置字段数量:', userDb ? Object.keys(userDb).length : 0);
-                
-                if (userDb && Object.keys(userDb).length > 0) {
-                    // 如果有配置，使用配置的值
-                    const loadedConfig = {
-                        name: userDb.name || '用户数据库',
-                        type: userDb.type || 'mongodb',
-                        host: userDb.host || 'localhost',
-                        port: userDb.port || 27017,
-                        username: userDb.username || '',
-                        password: userDb.password || '******',
-                        database: userDb.database || '',
-                        authSource: userDb.authSource || 'admin',
-                        connectionPool: userDb.connectionPool || 10,
-                        timeout: userDb.timeout || 30000,
-                        enabled: userDb.enabled !== false
-                    };
-                    console.log('✅ 设置用户数据库配置:', loadedConfig);
-                    setUserDatabase(loadedConfig);
-                } else {
-                    // 如果没有配置，使用默认值
-                    console.log('⚠️  没有找到数据库配置，使用默认值');
-                    setUserDatabase({
-                        name: '用户数据库',
-                        type: 'mongodb',
-                        host: 'localhost',
-                        port: 27017,
-                        username: '',
-                        password: '',
-                        database: '',
-                        authSource: 'admin',
-                        connectionPool: 10,
-                        timeout: 30000,
-                        enabled: true
-                    });
-                }
-
-                setQueryDatabases(config.databases?.query || []);
-
-
-
                 // 设置积分配置
                 setPointsConfig(config.points || {
                     searchCost: 10,
@@ -182,17 +135,6 @@ export const SystemSettings: React.FC = () => {
                         搜索类型
                     </button>
                     <button
-                        onClick={() => setActiveTab('database')}
-                        className={`flex items-center px-4 py-2 border-b-2 transition-colors ${activeTab === 'database'
-                            ? 'border-blue-500 text-blue-600'
-                            : 'border-transparent text-gray-600 hover:text-gray-900'
-                            }`}
-                    >
-                        <Database className="h-5 w-5 mr-2" />
-                        数据库配置
-                    </button>
-
-                    <button
                         onClick={() => setActiveTab('points')}
                         className={`flex items-center px-4 py-2 border-b-2 transition-colors ${activeTab === 'points'
                             ? 'border-blue-500 text-blue-600'
@@ -232,46 +174,6 @@ export const SystemSettings: React.FC = () => {
                             onUpdateSearchTypes={setSearchTypes}
                         />
                     )}
-                    {activeTab === 'database' && (
-                        <DatabaseConfig
-                            userDatabase={userDatabase}
-                            queryDatabases={queryDatabases}
-                            onUpdateUserDatabase={setUserDatabase}
-                            onUpdateQueryDatabases={setQueryDatabases}
-                            onSave={async (databases) => {
-                                try {
-                                    const token = getToken();
-                                    if (!token) {
-                                        console.error('未找到认证 token');
-                                        return false;
-                                    }
-                                    const response = await fetch('/api/system-config/databases', {
-                                        method: 'PUT',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`
-                                        },
-                                        body: JSON.stringify(databases)
-                                    });
-
-                                    const data = await response.json();
-
-                                    if (data.success) {
-                                        console.log('数据库配置已保存');
-                                        await loadSettings(); // 重新加载配置
-                                        return true;
-                                    } else {
-                                        console.error('保存失败:', data.message);
-                                        return false;
-                                    }
-                                } catch (error) {
-                                    console.error('保存配置失败:', error);
-                                    return false;
-                                }
-                            }}
-                        />
-                    )}
-
                     {activeTab === 'points' && (
                         <PointsConfig
                             pointsConfig={pointsConfig}

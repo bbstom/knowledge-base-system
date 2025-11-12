@@ -5,6 +5,18 @@ import { Layout } from '../components/Layout/Layout';
 import { searchApi } from '../utils/api';
 import { t } from '../utils/i18n';
 
+// 安全地处理换行符，防止XSS攻击
+const formatTextWithLineBreaks = (text: string) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\n/g, '<br>');
+};
+
 export const Databases: React.FC = () => {
   const navigate = useNavigate();
   const [databases, setDatabases] = useState<any[]>([]);
@@ -159,10 +171,11 @@ export const Databases: React.FC = () => {
                 })()}
               </div>
 
-              {/* 描述 - 最多显示2行 */}
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {db.description}
-              </p>
+              {/* 描述 - 保留换行 */}
+              <div 
+                className="text-gray-600 text-sm mb-4" 
+                dangerouslySetInnerHTML={{ __html: formatTextWithLineBreaks(db.description || '') }}
+              />
 
               {/* 详细信息 */}
               <div className="space-y-2 mb-4 flex-1">

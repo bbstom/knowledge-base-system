@@ -5,6 +5,18 @@ import { Layout } from '../components/Layout/Layout';
 import { searchApi } from '../utils/api';
 import toast from 'react-hot-toast';
 
+// 安全地处理换行符，防止XSS攻击
+const formatTextWithLineBreaks = (text: string) => {
+  if (!text) return '';
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\n/g, '<br>');
+};
+
 export const DatabaseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -126,9 +138,10 @@ export const DatabaseDetail: React.FC = () => {
           {/* 描述 */}
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-2">数据清单描述</h2>
-            <p className="text-gray-600 leading-relaxed">
-              {database.description}
-            </p>
+            <div 
+              className="text-gray-600 leading-relaxed" 
+              dangerouslySetInnerHTML={{ __html: formatTextWithLineBreaks(database.description || '') }}
+            />
           </div>
 
           {/* 详细信息 */}

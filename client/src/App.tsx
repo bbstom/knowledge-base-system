@@ -29,6 +29,8 @@ import { EmailConfig } from './pages/Admin/EmailConfig';
 import { EmailTemplates } from './pages/Admin/EmailTemplates';
 import { WithdrawManagement } from './pages/Admin/WithdrawManagement';
 import { UserManagement } from './pages/Admin/UserManagement';
+import { LotteryManagement } from './pages/Admin/LotteryManagement';
+import { LotteryStatistics } from './pages/Admin/LotteryStatistics';
 import { NotificationManagement } from './pages/Admin/NotificationManagement';
 import { SiteConfig } from './pages/Admin/SiteConfig';
 import { TicketManagement } from './pages/Admin/TicketManagement';
@@ -41,6 +43,7 @@ import UpgradeManagement from './pages/Admin/UpgradeManagement';
 import { Tickets } from './pages/Dashboard/Tickets';
 import { Recharge } from './pages/Dashboard/Recharge';
 import { RechargeCenter } from './pages/Dashboard/RechargeCenter';
+import { Lottery } from './pages/Dashboard/Lottery';
 import { RechargeByCard } from './pages/Dashboard/RechargeByCard';
 import { BalanceLogs } from './pages/Dashboard/BalanceLogs';
 import { CommissionLogs } from './pages/Dashboard/CommissionLogs';
@@ -198,6 +201,14 @@ function App() {
             } 
           />
           <Route 
+            path="/dashboard/lottery" 
+            element={
+              <ProtectedRoute>
+                <Lottery />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/dashboard/orders" 
             element={
               <ProtectedRoute>
@@ -262,6 +273,22 @@ function App() {
             element={
               <AdminRoute>
                 <ContentManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/lottery" 
+            element={
+              <AdminRoute>
+                <LotteryManagement />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/lottery/statistics" 
+            element={
+              <AdminRoute>
+                <LotteryStatistics />
               </AdminRoute>
             } 
           />

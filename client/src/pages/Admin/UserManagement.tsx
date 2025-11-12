@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Eye, Gift, DollarSign, UserPlus, Key, X } from 'lucide-react';
+import { Users, Search, Eye, Gift, DollarSign, UserPlus, Key, X, Trash2 } from 'lucide-react';
 import { AdminLayout } from '../../components/Layout/AdminLayout';
 import toast from 'react-hot-toast';
 
@@ -62,6 +62,12 @@ export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [vipFilter, setVipFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(false);
+  
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'referrals' | 'points' | 'commission' | 'searches'>('info');
@@ -74,154 +80,96 @@ export const UserManagement: React.FC = () => {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
 
   useEffect(() => {
     loadUsers();
-  }, []);
-
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchTerm]);
+  }, [currentPage, searchTerm, vipFilter]);
 
   const loadUsers = async () => {
-    // 模拟加载用户数据
-    const mockUsers: User[] = [
-      {
-        id: 'user001',
-        username: 'testuser',
-        email: 'test@example.com',
-        vipStatus: 'basic',
-        balance: 100.50,
-        points: 1250,
-        commission: 45.80,
-        referralCode: 'REF001',
-        totalReferrals: 5,
-        totalCommission: 245.80,
-        totalSearches: 120,
-        createdAt: '2024-01-15T08:00:00Z',
-        lastLoginAt: '2024-10-19T10:30:00Z'
-      },
-      {
-        id: 'user002',
-        username: 'user123',
-        email: 'user123@example.com',
-        vipStatus: 'premium',
-        balance: 500,
-        points: 3500,
-        commission: 120.50,
-        referralCode: 'REF002',
-        referredBy: 'user001',
-        referredByUsername: 'testuser',
-        totalReferrals: 3,
-        totalCommission: 320.50,
-        totalSearches: 250,
-        createdAt: '2024-02-20T10:00:00Z',
-        lastLoginAt: '2024-10-19T09:15:00Z'
+    try {
+      setLoading(true);
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+
+      if (!token) {
+        toast.error('请先登录');
+        return;
       }
-    ];
-    setUsers(mockUsers);
-  };
 
-  const filterUsers = () => {
-    if (!searchTerm) {
-      setFilteredUsers(users);
-      return;
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        search: searchTerm,
+        vipFilter: vipFilter
+      });
+
+      const response = await fetch(`/api/admin/users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('获取用户列表失败');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.data.users);
+        setFilteredUsers(data.data.users);
+        setTotalPages(data.data.pagination.totalPages);
+        setTotalUsers(data.data.pagination.totalUsers);
+      } else {
+        toast.error(data.message || '获取用户列表失败');
+      }
+    } catch (error) {
+      console.error('加载用户失败:', error);
+      toast.error('加载用户列表失败');
+    } finally {
+      setLoading(false);
     }
-
-    const filtered = users.filter(user =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.referralCode.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredUsers(filtered);
   };
 
   const loadUserDetails = async (user: User) => {
-    // 模拟加载用户详细数据
-    setReferralUsers([
-      {
-        id: 'ref001',
-        username: 'invited_user1',
-        email: 'invited1@example.com',
-        createdAt: '2024-03-01T10:00:00Z',
-        totalRecharge: 500,
-        commission: 75,
-        level: 1
-      },
-      {
-        id: 'ref002',
-        username: 'invited_user2',
-        email: 'invited2@example.com',
-        createdAt: '2024-03-15T14:30:00Z',
-        totalRecharge: 300,
-        commission: 45,
-        level: 1
-      }
-    ]);
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
 
-    setPointsRecords([
-      {
-        id: 'pt001',
-        amount: 10,
-        type: 'daily',
-        description: '每日签到奖励',
-        createdAt: '2024-10-19T08:00:00Z'
-      },
-      {
-        id: 'pt002',
-        amount: 100,
-        type: 'referral',
-        description: '推荐用户注册奖励',
-        createdAt: '2024-10-18T15:30:00Z'
-      },
-      {
-        id: 'pt003',
-        amount: -10,
-        type: 'search',
-        description: '搜索消耗',
-        createdAt: '2024-10-18T14:20:00Z'
+      if (!token) {
+        toast.error('请先登录');
+        return;
       }
-    ]);
 
-    setCommissionRecords([
-      {
-        id: 'cm001',
-        amount: 15.50,
-        fromUser: 'invited_user1',
-        type: 'recharge',
-        description: '下级充值佣金',
-        createdAt: '2024-10-18T14:20:00Z'
-      },
-      {
-        id: 'cm002',
-        amount: 8.30,
-        fromUser: 'invited_user2',
-        type: 'recharge',
-        description: '下级充值佣金',
-        createdAt: '2024-10-17T11:10:00Z'
-      }
-    ]);
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
 
-    setSearchRecords([
-      {
-        id: 'sr001',
-        type: 'phone',
-        query: '138****8888',
-        database: '手机号信息库',
-        cost: 10,
-        status: 'success',
-        createdAt: '2024-10-19T10:30:00Z'
-      },
-      {
-        id: 'sr002',
-        type: 'idcard',
-        query: '440***********1234',
-        database: '身份证信息库',
-        cost: 10,
-        status: 'failed',
-        createdAt: '2024-10-19T09:15:00Z'
+      if (!response.ok) {
+        throw new Error('获取用户详情失败');
       }
-    ]);
+
+      const data = await response.json();
+      if (data.success) {
+        setReferralUsers(data.data.referralUsers || []);
+        setPointsRecords(data.data.pointsRecords || []);
+        setCommissionRecords(data.data.commissionRecords || []);
+        setSearchRecords(data.data.searchRecords || []);
+      } else {
+        toast.error(data.message || '获取用户详情失败');
+      }
+    } catch (error) {
+      console.error('加载用户详情失败:', error);
+      toast.error('加载用户详情失败');
+    }
   };
 
   const handleViewDetails = (user: User) => {
@@ -252,41 +200,109 @@ export const UserManagement: React.FC = () => {
     }
 
     try {
-      // TODO: 调用后端API重置密码
-      // const response = await fetch(`/api/admin/users/${selectedUser?.id}/reset-password`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`
-      //   },
-      //   body: JSON.stringify({ newPassword })
-      // });
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
 
-      toast.success(`已为用户 ${selectedUser?.username} 重置密码`);
-      setShowResetPasswordModal(false);
-      setNewPassword('');
-      setConfirmPassword('');
+      if (!token) {
+        toast.error('请先登录');
+        return;
+      }
+
+      const response = await fetch(`/api/admin/users/${selectedUser?.id}/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newPassword })
+      });
+
+      if (!response.ok) {
+        throw new Error('重置密码失败');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        toast.success(`已为用户 ${selectedUser?.username} 重置密码`);
+        setShowResetPasswordModal(false);
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        toast.error(data.message || '重置密码失败');
+      }
     } catch (error) {
+      console.error('重置密码失败:', error);
       toast.error('重置密码失败');
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+
+      if (!token) {
+        toast.error('请先登录');
+        return;
+      }
+
+      const response = await fetch(`/api/admin/users/${userToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('删除失败，状态码:', response.status);
+        console.error('错误信息:', data);
+        toast.error(data.message || `删除失败 (${response.status})`);
+        return;
+      }
+
+      if (data.success) {
+        toast.success(`用户 ${userToDelete.username} 已删除`);
+        setShowDeleteModal(false);
+        setUserToDelete(null);
+        loadUsers(); // 重新加载用户列表
+      } else {
+        console.error('删除失败:', data);
+        toast.error(data.message || '删除用户失败');
+      }
+    } catch (error) {
+      console.error('删除用户失败:', error);
+      toast.error('删除用户失败');
     }
   };
 
   const getVipBadge = (vipStatus: string) => {
     const badges: Record<string, string> = {
       none: 'bg-gray-100 text-gray-800',
-      basic: 'bg-blue-100 text-blue-800',
-      premium: 'bg-purple-100 text-purple-800',
-      enterprise: 'bg-yellow-100 text-yellow-800'
+      bronze: 'bg-amber-100 text-amber-800',
+      silver: 'bg-gray-200 text-gray-800',
+      gold: 'bg-yellow-100 text-yellow-800',
+      platinum: 'bg-purple-100 text-purple-800',
+      diamond: 'bg-blue-100 text-blue-800'
     };
     const labels: Record<string, string> = {
       none: '普通用户',
-      basic: '基础会员',
-      premium: '高级会员',
-      enterprise: '企业会员'
+      bronze: '青铜会员',
+      silver: '白银会员',
+      gold: '黄金会员',
+      platinum: '铂金会员',
+      diamond: '钻石会员'
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[vipStatus]}`}>
-        {labels[vipStatus]}
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[vipStatus] || badges.none}`}>
+        {labels[vipStatus] || labels.none}
       </span>
     );
   };
@@ -300,17 +316,41 @@ export const UserManagement: React.FC = () => {
           <p className="text-gray-600">查看和管理用户信息</p>
         </div>
 
-        {/* Search */}
+        {/* Search and Filter */}
         <div className="card mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="搜索用户名、邮箱、推荐码..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="input-field pl-10"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="搜索用户名、邮箱、推荐码..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="input-field pl-10"
+              />
+            </div>
+            <div>
+              <select
+                value={vipFilter}
+                onChange={(e) => {
+                  setVipFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="input-field"
+              >
+                <option value="all">全部用户</option>
+                <option value="none">普通用户</option>
+                <option value="vip">VIP用户</option>
+                <option value="bronze">青铜会员</option>
+                <option value="silver">白银会员</option>
+                <option value="gold">黄金会员</option>
+                <option value="platinum">铂金会员</option>
+                <option value="diamond">钻石会员</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -321,7 +361,7 @@ export const UserManagement: React.FC = () => {
               <Users className="h-8 w-8 text-blue-600 mr-3" />
               <div>
                 <p className="text-sm text-gray-600">总用户数</p>
-                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
               </div>
             </div>
           </div>
@@ -329,8 +369,8 @@ export const UserManagement: React.FC = () => {
             <div className="flex items-center">
               <UserPlus className="h-8 w-8 text-green-600 mr-3" />
               <div>
-                <p className="text-sm text-gray-600">今日新增</p>
-                <p className="text-2xl font-bold text-gray-900">12</p>
+                <p className="text-sm text-gray-600">当前页</p>
+                <p className="text-2xl font-bold text-gray-900">{users.length}</p>
               </div>
             </div>
           </div>
@@ -359,8 +399,14 @@ export const UserManagement: React.FC = () => {
         </div>
 
         {/* Users List */}
-        <div className="space-y-4">
-          {filteredUsers.map(user => (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">加载中...</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredUsers.map(user => (
             <div key={user.id} className="card hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -401,29 +447,91 @@ export const UserManagement: React.FC = () => {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleViewDetails(user)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded ml-4"
-                  title="查看详情"
-                >
-                  <Eye className="h-5 w-5" />
-                </button>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => handleViewDetails(user)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                    title="查看详情"
+                  >
+                    <Eye className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setUserToDelete(user);
+                      setShowDeleteModal(true);
+                    }}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    title="删除用户"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
 
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                没有找到用户
-              </h3>
-              <p className="text-gray-600">
-                请尝试使用不同的关键词搜索
-              </p>
+            {filteredUsers.length === 0 && (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  没有找到用户
+                </h3>
+                <p className="text-gray-600">
+                  请尝试使用不同的关键词搜索
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && totalPages > 1 && (
+          <div className="card mt-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="text-sm font-medium text-gray-900">
+                  第 {currentPage} 页，共 {totalPages} 页
+                </div>
+                <div className="text-xs text-gray-500">
+                  显示第 {(currentPage - 1) * 10 + 1} - {Math.min(currentPage * 10, totalUsers)} 条，共 {totalUsers} 个用户（每页10条）
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  首页
+                </button>
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  上一页
+                </button>
+                <div className="px-4 py-2 bg-blue-50 text-blue-600 font-medium rounded border border-blue-200">
+                  {currentPage}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  下一页
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 text-sm border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  末页
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Detail Modal */}
         {showDetailModal && selectedUser && (
@@ -768,6 +876,95 @@ export const UserManagement: React.FC = () => {
                 >
                   <Key className="h-4 w-4 mr-2" />
                   确认重置
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && userToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-white rounded-lg w-full max-w-md">
+              {/* Modal Header */}
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">确认删除用户</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    此操作不可撤销
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setUserToDelete(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-800">
+                    <strong>警告：</strong>删除用户将同时删除以下数据：
+                  </p>
+                  <ul className="mt-2 text-sm text-red-700 list-disc list-inside space-y-1">
+                    <li>用户的所有搜索记录</li>
+                    <li>用户的所有余额日志</li>
+                    <li>用户的所有提现订单</li>
+                    <li>用户的推荐关系（被推荐用户将失去推荐人）</li>
+                  </ul>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>即将删除的用户：</strong>
+                  </p>
+                  <div className="space-y-1 text-sm">
+                    <div>
+                      <span className="text-gray-600">用户名：</span>
+                      <span className="font-medium ml-2">{userToDelete.username}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">邮箱：</span>
+                      <span className="font-medium ml-2">{userToDelete.email}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">余额：</span>
+                      <span className="font-medium ml-2">¥{userToDelete.balance}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">积分：</span>
+                      <span className="font-medium ml-2">{userToDelete.points}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600">
+                  请确认是否要删除用户 <strong>{userToDelete.username}</strong>？
+                </p>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-6 border-t flex justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setUserToDelete(null);
+                  }}
+                  className="btn-secondary"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  确认删除
                 </button>
               </div>
             </div>

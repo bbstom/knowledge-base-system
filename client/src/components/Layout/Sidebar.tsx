@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { X, Home, Database, User, BarChart3, Users, CreditCard, MessageSquare, Wallet, ShoppingBag, Receipt } from 'lucide-react';
+import { X, Home, Database, User, BarChart3, Users, CreditCard, MessageSquare, Wallet, ShoppingBag, Receipt, Gift } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -20,6 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: '佣金管理', href: '/dashboard/commission', icon: CreditCard },
     { name: '积分中心', href: '/dashboard/points', icon: BarChart3 },
     { name: '在线工单', href: '/dashboard/tickets', icon: MessageSquare },
+    { name: '抽奖中心', href: '/dashboard/lottery', icon: Gift },
     { name: '个人资料', href: '/dashboard/profile', icon: User },
   ];
 

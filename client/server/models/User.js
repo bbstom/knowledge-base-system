@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema({
     default: 0,
     index: true
   },
+  vipStatus: {
+    type: String,
+    enum: ['none', 'bronze', 'silver', 'gold', 'platinum', 'diamond'],
+    default: 'none'
+  },
   vipExpireAt: {
     type: Date,
     default: null

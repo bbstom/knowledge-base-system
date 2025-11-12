@@ -1,4 +1,6 @@
-require('dotenv').config();
+// 加载环境变量 - 使用绝对路径确保在任何工作目录下都能找到.env文件
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
 const express = require('express');
 const cors = require('cors');
 
@@ -65,7 +67,6 @@ const commissionRoutes = require('./routes/commission');
 const contentRoutes = require('./routes/content');
 const notificationRoutes = require('./routes/notification');
 const systemConfigRoutes = require('./routes/systemConfig');
-const databaseRoutes = require('./routes/database');
 const faqRoutes = require('./routes/faq');
 const topicRoutes = require('./routes/topic');
 const advertisementRoutes = require('./routes/advertisement');
@@ -77,6 +78,8 @@ const emailTemplateRoutes = require('./routes/emailTemplates');
 const referralRoutes = require('./routes/referral');
 const systemRoutes = require('./routes/system');
 const adminRoutes = require('./routes/admin');
+const databaseRoutes = require('./routes/databases');
+const lotteryRoutes = require('./routes/lottery');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
@@ -88,7 +91,6 @@ app.use('/api/commission', commissionRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/system-config', systemConfigRoutes);
-app.use('/api/databases', databaseRoutes);
 app.use('/api/faqs', faqRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/advertisements', advertisementRoutes);
@@ -100,6 +102,8 @@ app.use('/api/email-templates', emailTemplateRoutes);
 app.use('/api/referral', referralRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/databases', databaseRoutes);
+app.use('/api/lottery', lotteryRoutes);
 
 // 静态文件服务 - 提供前端构建文件
 const path = require('path');

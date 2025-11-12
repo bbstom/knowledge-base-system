@@ -133,3 +133,27 @@ export const isAuthenticated = realIsAuthenticated;
 export const getCurrentUser = realGetCurrentUser;
 
 export default api;
+
+// 抽奖API
+export const lotteryApi = {
+  // 获取可用的抽奖活动
+  async getActivities() {
+    return api.get('/lottery/activities');
+  },
+
+  // 参与抽奖
+  async draw(activityId: string) {
+    return api.post(`/lottery/draw/${activityId}`);
+  },
+
+  // 获取我的抽奖记录
+  async getMyRecords(params?: { page?: number; limit?: number }) {
+    const query = new URLSearchParams(params as any).toString();
+    return api.get(`/lottery/records?${query}`);
+  },
+
+  // 领取奖品
+  async claimPrize(recordId: string, shippingInfo?: any) {
+    return api.post(`/lottery/claim/${recordId}`, { shippingInfo });
+  }
+};

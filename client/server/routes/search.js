@@ -225,19 +225,44 @@ router.post('/', authMiddleware, async (req, res) => {
       try {
         const collection = queryConnection.db.collection(collectionInfo.name);
         
-        // 优化策略：减少 $or 条件数量，优先使用精确匹配
-        // 只使用精确匹配（可以充分利用索引）
-        const orConditions = searchFields.map(field => ({
-          [field]: searchQuery
-        }));
+        // 优化策略：优先使用文本索引（如果存在）
+        let results = [];
+        const timeout = 3000; // 每个集合最多3秒
         
-        // 执行搜索，添加超时和hint（提示使用索引）
-        const results = await collection.find({
-          $or: orConditions
-        })
-        .maxTimeMS(15000) // 15秒超时
-        .limit(50)
-        .toArray();
+        try {
+          // 策略1：尝试使用文本索引（最快）
+          results = await collection.find({
+            $text: { $search: searchQuery }
+          })
+          .maxTimeMS(timeout)
+          .limit(50)
+          .toArray();
+          
+          if (results.length > 0) {
+            // 文本索引搜索成功
+            console.log(`✓ ${collectionInfo.name}: ${results.length} 条记录 (文本索引)`);
+          }
+        } catch (textSearchError) {
+          // 文本索引不存在或查询失败，使用精确匹配
+          for (const field of searchFields) {
+            try {
+              const fieldResults = await collection.find({
+                [field]: searchQuery
+              })
+              .maxTimeMS(timeout)
+              .limit(50)
+              .toArray();
+              
+              if (fieldResults.length > 0) {
+                results = fieldResults;
+                break; // 找到结果就停止
+              }
+            } catch (err) {
+              // 单个字段查询失败，继续尝试下一个字段
+              continue;
+            }
+          }
+        }
         
         if (results.length > 0) {
           console.log(`✓ ${collectionInfo.name}: ${results.length} 条记录`);
