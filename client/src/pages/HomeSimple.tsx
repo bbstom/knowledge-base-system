@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Database, Shield, Zap, Users, Award } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
 
-export const Home: React.FC = () => {
+export const HomeSimple: React.FC = () => {
   const features = [
     {
       icon: Search,
@@ -40,25 +40,25 @@ export const Home: React.FC = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white">
+      <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6">
               专业信息搜索平台
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-blue-100 animate-fade-in-delay">
+            <p className="text-xl md:text-2xl mb-8 text-blue-100">
               快速、安全、准确的数据查询服务
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-delay-2">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/search"
-                className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
               >
                 开始搜索
               </Link>
               <Link
                 to="/register"
-                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
               >
                 免费注册
               </Link>
@@ -83,14 +83,11 @@ export const Home: React.FC = () => {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               return (
-                <div 
-                  key={index} 
-                  className="group text-center p-6 rounded-xl bg-white border border-gray-100 hover:border-blue-200 hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div key={index} className="text-center p-6 rounded-lg hover:shadow-lg transition-shadow">
+                  <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">
                     <Icon className="h-8 w-8" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {feature.title}
                   </h3>
                   <p className="text-gray-600">
@@ -104,31 +101,31 @@ export const Home: React.FC = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-            <div className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-              <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform">1M+</div>
-              <div className="text-gray-600 font-medium">注册用户</div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">1M+</div>
+              <div className="text-gray-600">注册用户</div>
             </div>
-            <div className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-              <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform">10M+</div>
-              <div className="text-gray-600 font-medium">搜索次数</div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">10M+</div>
+              <div className="text-gray-600">搜索次数</div>
             </div>
-            <div className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-              <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform">50+</div>
-              <div className="text-gray-600 font-medium">数据库</div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">50+</div>
+              <div className="text-gray-600">数据库</div>
             </div>
-            <div className="group p-6 rounded-xl bg-white shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-              <div className="text-4xl font-bold text-blue-600 mb-2 group-hover:scale-110 transition-transform">99.9%</div>
-              <div className="text-gray-600 font-medium">服务可用性</div>
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">99.9%</div>
+              <div className="text-gray-600">服务可用性</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+      <section className="py-20 bg-blue-600 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             准备开始了吗？
@@ -138,7 +135,7 @@ export const Home: React.FC = () => {
           </p>
           <Link
             to="/register"
-            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 inline-block"
+            className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors inline-block"
           >
             免费注册
           </Link>

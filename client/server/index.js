@@ -221,7 +221,14 @@ function getLocalIP() {
   return 'localhost';
 }
 
-const server = app.listen(PORT, HOST, () => {
+// 先初始化数据库，然后启动服务器
+async function startServer() {
+  try {
+    // 初始化数据库连接
+    await initializeDatabase();
+    
+    // 启动HTTP服务器
+    const server = app.listen(PORT, HOST, () => {
   const localIP = getLocalIP();
   
   console.log('\n' + '='.repeat(60));
@@ -307,5 +314,13 @@ async function gracefulShutdown(signal) {
   }, 10000);
 }
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  } catch (error) {
+    console.error('❌ 服务器启动失败:', error);
+    process.exit(1);
+  }
+}
+
+// 启动服务器
+startServer();
