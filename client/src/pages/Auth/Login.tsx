@@ -12,8 +12,8 @@ import toast from 'react-hot-toast';
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { refreshUser } = useUser();
-  const [email, setEmail] = useState('test@example.com'); // 预填充测试账号
-  const [password, setPassword] = useState('password123'); // 预填充测试密码
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [captcha, setCaptcha] = useState('');
   const [captchaValid, setCaptchaValid] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -131,23 +131,6 @@ export const Login: React.FC = () => {
                 onChange={setCaptcha}
                 onValidate={setCaptchaValid}
               />
-            </div>
-
-            {/* 测试账号提示 */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-800 mb-2">测试账号</h4>
-              <div className="text-sm text-blue-600 space-y-2">
-                <div>
-                  <strong>普通用户:</strong><br />
-                  邮箱: test@example.com<br />
-                  密码: password123
-                </div>
-                <div>
-                  <strong>管理员:</strong><br />
-                  邮箱: admin@infosearch.com<br />
-                  密码: admin123
-                </div>
-              </div>
             </div>
 
             <div>
