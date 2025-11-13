@@ -808,7 +808,8 @@ router.get('/public-config', async (req, res) => {
         withdrawFee: config.points?.withdrawFee || 0
       },
       points: {
-        exchangeRate: config.points?.exchangeRate || 100
+        exchangeRate: config.points?.exchangeRate || 100,
+        dailyCheckIn: config.points?.dailyCheckIn || 10
       }
     };
     

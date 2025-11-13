@@ -17,8 +17,8 @@ interface Notification {
   status: 'draft' | 'active' | 'expired';
   startDate: string;
   endDate: string;
-  targetUsers: 'all' | 'vip' | 'new' | 'active';
-  priority: 'low' | 'medium' | 'high';
+  targetUsers: 'all' | 'vip' | 'normal' | 'new' | 'active';
+  priority: 'low' | 'normal' | 'medium' | 'high' | 'urgent';
   viewCount: number;
   createdAt: string;
 }
@@ -39,8 +39,8 @@ export const NotificationManagement: React.FC = () => {
     status: 'draft' as 'draft' | 'active' | 'expired',
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
-    targetUsers: 'all' as 'all' | 'vip' | 'new' | 'active',
-    priority: 'medium' as 'low' | 'medium' | 'high'
+    targetUsers: 'all' as 'all' | 'vip' | 'normal' | 'new' | 'active',
+    priority: 'normal' as 'low' | 'normal' | 'medium' | 'high' | 'urgent'
   });
 
   useEffect(() => {
@@ -194,18 +194,22 @@ export const NotificationManagement: React.FC = () => {
 
   const getPriorityBadge = (priority: string) => {
     const badges = {
-      low: 'bg-blue-100 text-blue-800',
+      low: 'bg-gray-100 text-gray-800',
+      normal: 'bg-blue-100 text-blue-800',
       medium: 'bg-yellow-100 text-yellow-800',
-      high: 'bg-red-100 text-red-800'
+      high: 'bg-orange-100 text-orange-800',
+      urgent: 'bg-red-100 text-red-800'
     };
     const labels = {
       low: '低',
+      normal: '一般',
       medium: '中',
-      high: '高'
+      high: '重要',
+      urgent: '紧急'
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[priority as keyof typeof badges]}`}>
-        {labels[priority as keyof typeof labels]}
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[priority as keyof typeof badges] || badges.normal}`}>
+        {labels[priority as keyof typeof labels] || priority}
       </span>
     );
   };
@@ -214,6 +218,7 @@ export const NotificationManagement: React.FC = () => {
     const labels = {
       all: '所有用户',
       vip: 'VIP用户',
+      normal: '普通用户',
       new: '新用户',
       active: '活跃用户'
     };
@@ -469,6 +474,7 @@ export const NotificationManagement: React.FC = () => {
                         >
                           <option value="all">所有用户</option>
                           <option value="vip">VIP用户</option>
+                          <option value="normal">普通用户</option>
                           <option value="new">新用户（注册7天内）</option>
                           <option value="active">活跃用户</option>
                         </select>
@@ -484,8 +490,10 @@ export const NotificationManagement: React.FC = () => {
                           className="input-field"
                         >
                           <option value="low">低</option>
+                          <option value="normal">一般</option>
                           <option value="medium">中</option>
-                          <option value="high">高</option>
+                          <option value="high">重要</option>
+                          <option value="urgent">紧急</option>
                         </select>
                       </div>
 

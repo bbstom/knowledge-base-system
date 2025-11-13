@@ -13,18 +13,7 @@ export default {
           600: '#2563eb',
           700: '#1d4ed8',
         }
-      },
-      animation: {
-        'fade-in': 'fadeIn 0.8s ease-out',
-        'fade-in-delay': 'fadeIn 0.8s ease-out 0.2s both',
-        'fade-in-delay-2': 'fadeIn 0.8s ease-out 0.4s both',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-      },
+      }
     },
   },
 }

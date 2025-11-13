@@ -150,7 +150,7 @@ export const LotteryManagement: React.FC = () => {
 
   const viewStatistics = async (id: string) => {
     try {
-      const response = await lotteryApi.getStatistics({ activityId: id });
+      const response = await lotteryApi.getStatistics(id);
       if (response.success) {
         setStatistics(response.data);
       }

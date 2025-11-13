@@ -226,24 +226,12 @@ router.post('/', authMiddleware, async (req, res) => {
         const collection = queryConnection.db.collection(collectionInfo.name);
         
         // 优化策略：优先使用文本索引（如果存在）
+        // 但邮箱搜索必须精确匹配，不使用文本索引
         let results = [];
         const timeout = 3000; // 每个集合最多3秒
         
-        try {
-          // 策略1：尝试使用文本索引（最快）
-          results = await collection.find({
-            $text: { $search: searchQuery }
-          })
-          .maxTimeMS(timeout)
-          .limit(50)
-          .toArray();
-          
-          if (results.length > 0) {
-            // 文本索引搜索成功
-            console.log(`✓ ${collectionInfo.name}: ${results.length} 条记录 (文本索引)`);
-          }
-        } catch (textSearchError) {
-          // 文本索引不存在或查询失败，使用精确匹配
+        // 邮箱搜索跳过文本索引，直接精确匹配
+        if (type === 'email') {
           for (const field of searchFields) {
             try {
               const fieldResults = await collection.find({
@@ -260,6 +248,42 @@ router.post('/', authMiddleware, async (req, res) => {
             } catch (err) {
               // 单个字段查询失败，继续尝试下一个字段
               continue;
+            }
+          }
+        } else {
+          // 其他类型可以使用文本索引
+          try {
+            // 策略1：尝试使用文本索引（最快）
+            results = await collection.find({
+              $text: { $search: searchQuery }
+            })
+            .maxTimeMS(timeout)
+            .limit(50)
+            .toArray();
+            
+            if (results.length > 0) {
+              // 文本索引搜索成功
+              console.log(`✓ ${collectionInfo.name}: ${results.length} 条记录 (文本索引)`);
+            }
+          } catch (textSearchError) {
+            // 文本索引不存在或查询失败，使用精确匹配
+            for (const field of searchFields) {
+              try {
+                const fieldResults = await collection.find({
+                  [field]: searchQuery
+                })
+                .maxTimeMS(timeout)
+                .limit(50)
+                .toArray();
+                
+                if (fieldResults.length > 0) {
+                  results = fieldResults;
+                  break; // 找到结果就停止
+                }
+              } catch (err) {
+                // 单个字段查询失败，继续尝试下一个字段
+                continue;
+              }
             }
           }
         }

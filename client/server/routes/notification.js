@@ -45,26 +45,47 @@ const adminMiddleware = (req, res, next) => {
 router.get('/active', authMiddleware, async (req, res) => {
   try {
     const now = new Date();
+    const userId = req.user._id;
+    const isVip = req.user.isVip;
     
-    const notifications = await Notification.find({
+    // 构建查询条件
+    const query = {
       status: 'active',
       startDate: { $lte: now },
-      $or: [
-        { endDate: { $gte: now } },
-        { endDate: null }
-      ],
-      $or: [
-        { targetUsers: 'all' },
-        { targetUsers: 'vip', specificUsers: req.user._id },
-        { specificUsers: req.user._id }
+      $and: [
+        // 时间条件：未过期或无结束时间
+        {
+          $or: [
+            { endDate: { $gte: now } },
+            { endDate: null }
+          ]
+        },
+        // 目标用户条件
+        {
+          $or: [
+            { targetUsers: 'all' },
+            { targetUsers: 'vip', $expr: { $eq: [isVip, true] } },
+            { targetUsers: 'normal', $expr: { $eq: [isVip, false] } }
+          ]
+        }
       ]
-    })
-    .sort({ priority: -1, createdAt: -1 })
-    .limit(10);
+    };
+
+    const notifications = await Notification.find(query)
+      .sort({ priority: -1, createdAt: -1 })
+      .limit(10);
+
+    // 过滤掉用户已读的通知
+    const unreadNotifications = notifications.filter(notification => {
+      const hasRead = notification.readBy.some(
+        r => r.userId.toString() === userId.toString()
+      );
+      return !hasRead;
+    });
 
     res.json({
       success: true,
-      data: notifications
+      data: unreadNotifications
     });
   } catch (error) {
     console.error('Get active notifications error:', error);

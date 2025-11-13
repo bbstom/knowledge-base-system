@@ -254,54 +254,84 @@ export const RechargeCenter: React.FC = () => {
         {/* 积分充值套餐 */}
         {activeTab === 'points' && (
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-              {pointsPackages.map((pkg) => (
-                <div
-                  key={pkg.id}
-                  className="relative bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer group"
-                  onClick={() => handlePointsRecharge(pkg)}
-                >
-                  {/* 优惠角标 */}
-                  {pkg.originalAmount && pkg.originalAmount > pkg.amount && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded">
-                      -{(((pkg.originalAmount - pkg.amount) / pkg.originalAmount) * 100).toFixed(0)}%
-                    </div>
-                  )}
-                  
-                  <div className="p-4 text-center">
-                    {/* 图标 */}
-                    <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50 text-blue-500 mb-2">
-                      <Coins className="h-5 w-5" />
-                    </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+              {pointsPackages.map((pkg, index) => {
+                // 根据套餐大小选择不同的渐变色
+                const gradients = [
+                  'from-blue-400 to-blue-600',
+                  'from-indigo-400 to-indigo-600',
+                  'from-purple-400 to-purple-600',
+                  'from-pink-400 to-pink-600',
+                  'from-orange-400 to-orange-600',
+                  'from-red-400 to-red-600'
+                ];
+                const gradient = gradients[index % gradients.length];
+                
+                return (
+                  <div
+                    key={pkg.id}
+                    className="relative bg-gradient-to-br from-white to-gray-50 rounded-xl border-2 border-gray-200 hover:border-blue-400 hover:shadow-2xl transition-all duration-300 cursor-pointer group overflow-hidden"
+                    onClick={() => handlePointsRecharge(pkg)}
+                  >
+                    {/* 背景装饰 */}
+                    <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500`}></div>
                     
-                    {/* 积分数量 */}
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                      {pkg.points}
-                    </h3>
-                    
-                    {/* 价格 */}
-                    {pkg.originalAmount && pkg.originalAmount > pkg.amount ? (
-                      <div className="mb-2">
-                        <div className="text-xs text-gray-400 line-through mb-1">
-                          ${pkg.originalAmount.toFixed(2)}
+                    {/* 优惠角标 */}
+                    {pkg.originalAmount && pkg.originalAmount > pkg.amount && (
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg animate-pulse">
+                          省{(((pkg.originalAmount - pkg.amount) / pkg.originalAmount) * 100).toFixed(0)}%
                         </div>
-                        <div className="text-2xl font-bold text-blue-600">
-                          ${pkg.amount.toFixed(2)}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-2xl font-bold text-blue-600 mb-2">
-                        ${pkg.amount.toFixed(2)}
                       </div>
                     )}
                     
-                    {/* 按钮 */}
-                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium py-2 px-3 rounded-lg transition-all">
-                      立即充值
-                    </button>
+                    <div className="relative p-6 text-center">
+                      {/* 图标 */}
+                      <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} text-white mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                        <Coins className="h-8 w-8" />
+                      </div>
+                      
+                      {/* 积分数量 */}
+                      <div className="mb-3">
+                        <div className="text-3xl font-bold text-gray-900 mb-1">
+                          {pkg.points.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500 font-medium">
+                          积分
+                        </div>
+                      </div>
+                      
+                      {/* 价格 */}
+                      <div className="mb-4">
+                        {pkg.originalAmount && pkg.originalAmount > pkg.amount ? (
+                          <div className="space-y-1">
+                            <div className="text-sm text-gray-400 line-through">
+                              原价 ${pkg.originalAmount.toFixed(2)}
+                            </div>
+                            <div className={`text-3xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+                              ${pkg.amount.toFixed(2)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`text-3xl font-bold bg-gradient-to-r ${gradient} bg-clip-text text-transparent`}>
+                            ${pkg.amount.toFixed(2)}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* 性价比标签 */}
+                      <div className="mb-4 text-xs text-gray-500">
+                        ≈ ${(pkg.amount / pkg.points * 100).toFixed(2)}/100积分
+                      </div>
+                      
+                      {/* 按钮 */}
+                      <button className={`w-full bg-gradient-to-r ${gradient} hover:shadow-lg text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 transform group-hover:scale-105`}>
+                        立即充值
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {pointsPackages.length === 0 && (

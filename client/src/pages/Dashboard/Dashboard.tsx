@@ -11,6 +11,25 @@ export const Dashboard: React.FC = () => {
   const { user, refreshUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  const [dailyCheckInPoints, setDailyCheckInPoints] = useState(10); // 默认10积分
+
+  useEffect(() => {
+    loadSystemConfig();
+  }, []);
+
+  const loadSystemConfig = async () => {
+    try {
+      const response = await fetch('/api/system-config/public-config');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data?.points?.dailyCheckIn) {
+          setDailyCheckInPoints(result.data.points.dailyCheckIn);
+        }
+      }
+    } catch (error) {
+      console.error('加载系统配置失败:', error);
+    }
+  };
 
   const handleDailyClaim = async () => {
     if (claiming) return;
@@ -134,7 +153,7 @@ export const Dashboard: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-semibold">每日签到</h3>
                   <p className="text-sm text-white/80">
-                    {canClaimToday() ? '签到领取 10 积分' : '今天已经签到过了'}
+                    {canClaimToday() ? `签到领取 ${dailyCheckInPoints} 积分` : '今天已经签到过了'}
                   </p>
                 </div>
               </div>

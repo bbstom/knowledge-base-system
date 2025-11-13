@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema({
   },
   targetUsers: {
     type: String,
-    enum: ['all', 'vip', 'new', 'active', 'specific'],
+    enum: ['all', 'vip', 'normal', 'new', 'active', 'specific'],
     default: 'all'
   },
   specificUsers: [{

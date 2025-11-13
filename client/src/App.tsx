@@ -53,6 +53,7 @@ import Shop from './pages/Shop/Shop';
 import ExchangePoints from './pages/Shop/ExchangePoints';
 import { isAuthenticated, getUser } from './utils/auth';
 import { DebugTranslations } from './components/DebugTranslations';
+import { NotificationModal } from './components/NotificationModal';
 import './styles/globals.css';
 
 // Protected Route Component
@@ -82,6 +83,7 @@ function App() {
     <UserProvider>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ReferralTracker />
+        <NotificationModal />
         <div className="App">
         <Routes>
           {/* Public Routes */}
