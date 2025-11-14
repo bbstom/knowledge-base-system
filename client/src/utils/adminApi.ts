@@ -8,6 +8,7 @@ const apiRequest = async (url: string, options: RequestInit = {}) => {
   const token = getToken();
   
   const config: RequestInit = {
+    credentials: 'include', // 重要！允许发送Cookie
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,

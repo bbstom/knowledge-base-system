@@ -13,6 +13,7 @@ export interface ApiResponse<T = any> {
 const api = axios.create({
   baseURL: '/api', // 使用代理
   timeout: 10000,
+  withCredentials: true, // 重要！允许发送Cookie
   headers: {
     'Content-Type': 'application/json',
   },
