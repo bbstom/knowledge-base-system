@@ -11,7 +11,9 @@ const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_URL || 'http://localhost:5173',
   'http://localhost:5173',
-  'http://127.0.0.1:5173'
+  'http://127.0.0.1:5173',
+  'https://www.13140.sbs',  // 生产环境前端域名
+  'http://www.13140.sbs'    // HTTP版本（如果需要）
 ];
 
 // 动态添加局域网IP的前端地址

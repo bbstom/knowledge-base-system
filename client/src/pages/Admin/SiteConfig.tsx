@@ -49,7 +49,8 @@ export const SiteConfig: React.FC = () => {
             const response = await fetch('/api/site-config/admin', {
                 headers: {
                     'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`
-                }
+                },
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -79,12 +80,13 @@ export const SiteConfig: React.FC = () => {
     const handleSave = async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/site-config/admin', {
-                method: 'POST',
+            const response = await fetch('/api/site-config', {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`
                 },
+                credentials: 'include',
                 body: JSON.stringify(config)
             });
 
