@@ -62,7 +62,7 @@ export const FAQ: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout containerSize="xl">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
@@ -71,8 +71,8 @@ export const FAQ: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout containerSize="xl">
+      <div className="py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 text-blue-600 rounded-full mb-4">

@@ -115,27 +115,85 @@ router.get('/public', async (req, res) => {
 // 创建广告
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { title, content, position, isActive, order, startDate, endDate } = req.body;
+    console.log('📝 创建广告请求:', {
+      title: req.body.title,
+      type: req.body.type,
+      hasContent: !!req.body.content,
+      carouselImagesCount: req.body.carouselImages?.length || 0
+    });
 
-    if (!title || !content) {
+    const { 
+      title, 
+      content, 
+      type,
+      carouselImages,
+      carouselLinks,
+      carouselInterval,
+      carouselHeight,
+      showControls,
+      showIndicators,
+      position, 
+      isActive, 
+      order, 
+      startDate, 
+      endDate 
+    } = req.body;
+
+    if (!title) {
+      console.log('❌ 验证失败: 标题为空');
       return res.status(400).json({
         success: false,
-        message: '标题和内容不能为空'
+        message: '标题不能为空'
       });
     }
 
-    const advertisement = new Advertisement({
+    // 根据类型验证必填字段
+    if (type === 'carousel') {
+      console.log('🎠 轮播广告验证:', { 
+        imagesCount: carouselImages?.length || 0,
+        images: carouselImages 
+      });
+      if (!carouselImages || carouselImages.length === 0) {
+        console.log('❌ 验证失败: 轮播图片为空');
+        return res.status(400).json({
+          success: false,
+          message: '轮播广告至少需要一张图片'
+        });
+      }
+    } else {
+      if (!content) {
+        console.log('❌ 验证失败: HTML内容为空');
+        return res.status(400).json({
+          success: false,
+          message: 'HTML广告内容不能为空'
+        });
+      }
+    }
+
+    const adData = {
       title,
-      content,
+      content: content || '',
+      type: type || 'html',
+      carouselImages: carouselImages || [],
+      carouselLinks: carouselLinks || [],
+      carouselInterval: carouselInterval || 5000,
+      carouselHeight: carouselHeight || '400px',
+      showControls: showControls !== false,
+      showIndicators: showIndicators !== false,
       position: position || 'search',
       isActive: isActive !== undefined ? isActive : true,
       order: order || 0,
       startDate: startDate || null,
       endDate: endDate || null,
       createdBy: req.user.userId
-    });
+    };
 
+    console.log('💾 准备保存广告:', adData);
+
+    const advertisement = new Advertisement(adData);
     await advertisement.save();
+
+    console.log('✅ 广告创建成功:', advertisement._id);
 
     res.json({
       success: true,
@@ -143,10 +201,11 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
       data: advertisement
     });
   } catch (error) {
-    console.error('创建广告失败:', error);
+    console.error('❌ 创建广告失败:', error);
+    console.error('错误详情:', error.message);
     res.status(500).json({
       success: false,
-      message: '创建广告失败'
+      message: '创建广告失败: ' + error.message
     });
   }
 });
@@ -155,7 +214,22 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, content, position, isActive, order, startDate, endDate } = req.body;
+    const { 
+      title, 
+      content, 
+      type,
+      carouselImages,
+      carouselLinks,
+      carouselInterval,
+      carouselHeight,
+      showControls,
+      showIndicators,
+      position, 
+      isActive, 
+      order, 
+      startDate, 
+      endDate 
+    } = req.body;
 
     const advertisement = await Advertisement.findById(id);
     if (!advertisement) {
@@ -167,6 +241,13 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
     if (title !== undefined) advertisement.title = title;
     if (content !== undefined) advertisement.content = content;
+    if (type !== undefined) advertisement.type = type;
+    if (carouselImages !== undefined) advertisement.carouselImages = carouselImages;
+    if (carouselLinks !== undefined) advertisement.carouselLinks = carouselLinks;
+    if (carouselInterval !== undefined) advertisement.carouselInterval = carouselInterval;
+    if (carouselHeight !== undefined) advertisement.carouselHeight = carouselHeight;
+    if (showControls !== undefined) advertisement.showControls = showControls;
+    if (showIndicators !== undefined) advertisement.showIndicators = showIndicators;
     if (position !== undefined) advertisement.position = position;
     if (isActive !== undefined) advertisement.isActive = isActive;
     if (order !== undefined) advertisement.order = order;

@@ -107,7 +107,7 @@ export const Databases: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      <Layout containerSize="xl">
         <div className="flex items-center justify-center h-64">
           <div className="text-lg">{t('common.loading')}</div>
         </div>
@@ -116,8 +116,8 @@ export const Databases: React.FC = () => {
   }
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout containerSize="xl">
+      <div className="py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             数据清单

@@ -48,6 +48,43 @@
   .grid-spacing {
     @apply gap-4;
   }
+  
+  /* 广告内容样式 - 智能处理图片和文字的内边距 */
+  .ad-content {
+    @apply overflow-hidden;
+    max-height: 600px; /* 最大高度600px */
+  }
+  
+  /* 图片样式 - 无内边距，全宽显示 */
+  .ad-content img {
+    @apply w-full h-auto block m-0 p-0 max-w-full;
+    max-height: 600px; /* 图片最大高度600px */
+    object-fit: contain; /* 保持图片比例 */
+  }
+  
+  /* 文字内容有内边距 */
+  .ad-content p {
+    @apply px-3 py-2;
+  }
+  
+  /* 标题有内边距 */
+  .ad-content h1,
+  .ad-content h2,
+  .ad-content h3,
+  .ad-content h4,
+  .ad-content h5,
+  .ad-content h6 {
+    @apply px-3 py-2 font-bold;
+  }
+  
+  /* 链接包裹的图片也无内边距 */
+  .ad-content a img {
+    @apply m-0 p-0;
+  }
+  
+  .ad-content a {
+    @apply block;
+  }
 }
 
 @layer utilities {
@@ -133,3 +170,8 @@
     animation: fadeInUp 0.6s ease-out;
   }
 }
+
+  /* 轮播广告样式 */
+  .ad-carousel-container:hover .carousel-control {
+    opacity: 1;
+  }

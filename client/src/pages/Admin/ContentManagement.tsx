@@ -224,8 +224,22 @@ export const ContentManagement: React.FC = () => {
           }
         }
       } else if (activeTab === 'ads') {
+        // 保存前清理轮播数据（过滤空行）
+        const adData = { ...editingItem };
+        if (adData.type === 'carousel') {
+          adData.carouselImages = (adData.carouselImages || []).filter((url: string) => url.trim());
+          adData.carouselLinks = (adData.carouselLinks || []).filter((url: string) => url.trim());
+          // 确保content字段存在
+          if (!adData.content) {
+            adData.content = '';
+          }
+        }
+        
+        console.log('保存广告数据:', adData);
+        
         if (isAdding) {
-          const response = await advertisementApi.create(editingItem);
+          const response = await advertisementApi.create(adData);
+          console.log('创建广告响应:', response);
           if (response.success) {
             toast.success('广告已创建');
             await loadContent();
@@ -233,7 +247,7 @@ export const ContentManagement: React.FC = () => {
             toast.error(response.message || '创建失败');
           }
         } else {
-          const response = await advertisementApi.update(editingItem._id || editingItem.id, editingItem);
+          const response = await advertisementApi.update(adData._id || adData.id, adData);
           if (response.success) {
             toast.success('广告已更新');
             await loadContent();
@@ -605,22 +619,118 @@ export const ContentManagement: React.FC = () => {
         />
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">内容（支持HTML）</label>
-        <textarea
-          value={editingItem?.content || ''}
-          onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })}
-          className="input-field font-mono text-sm"
-          rows={8}
-          placeholder="<div>HTML内容</div>"
-        />
+        <label className="block text-sm font-medium text-gray-700 mb-2">广告类型</label>
+        <select
+          value={editingItem?.type || 'html'}
+          onChange={(e) => setEditingItem({ ...editingItem, type: e.target.value })}
+          className="input-field"
+        >
+          <option value="html">普通HTML广告</option>
+          <option value="carousel">图片轮播广告</option>
+        </select>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">预览</label>
-        <div 
-          className="border rounded-lg p-4 bg-gray-50"
-          dangerouslySetInnerHTML={{ __html: editingItem?.content || '' }}
-        />
-      </div>
+
+      {editingItem?.type === 'carousel' ? (
+        // 轮播广告配置
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              轮播图片URL（每行一个）
+            </label>
+            <textarea
+              value={(editingItem?.carouselImages || []).join('\n')}
+              onChange={(e) => setEditingItem({ 
+                ...editingItem, 
+                carouselImages: e.target.value.split('\n')
+              })}
+              className="input-field font-mono text-sm"
+              rows={5}
+              placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg&#10;https://example.com/image3.jpg"
+            />
+            <p className="text-xs text-gray-500 mt-1">每行输入一个图片URL，按Enter换行</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              对应链接URL（每行一个，可选）
+            </label>
+            <textarea
+              value={(editingItem?.carouselLinks || []).join('\n')}
+              onChange={(e) => setEditingItem({ 
+                ...editingItem, 
+                carouselLinks: e.target.value.split('\n')
+              })}
+              className="input-field font-mono text-sm"
+              rows={5}
+              placeholder="https://example.com/page1&#10;https://example.com/page2&#10;https://example.com/page3"
+            />
+            <p className="text-xs text-gray-500 mt-1">点击图片时跳转的链接，留空则不可点击，按Enter换行</p>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">切换间隔（毫秒）</label>
+              <input
+                type="number"
+                value={editingItem?.carouselInterval || 5000}
+                onChange={(e) => setEditingItem({ ...editingItem, carouselInterval: parseInt(e.target.value) })}
+                className="input-field"
+                min="1000"
+                step="1000"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">高度</label>
+              <input
+                type="text"
+                value={editingItem?.carouselHeight || '400px'}
+                onChange={(e) => setEditingItem({ ...editingItem, carouselHeight: e.target.value })}
+                className="input-field"
+                placeholder="400px"
+              />
+            </div>
+            <div className="flex flex-col justify-end">
+              <label className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  checked={editingItem?.showControls !== false}
+                  onChange={(e) => setEditingItem({ ...editingItem, showControls: e.target.checked })}
+                  className="mr-2"
+                />
+                <span className="text-sm">显示箭头</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={editingItem?.showIndicators !== false}
+                  onChange={(e) => setEditingItem({ ...editingItem, showIndicators: e.target.checked })}
+                  className="mr-2"
+                />
+                <span className="text-sm">显示指示器</span>
+              </label>
+            </div>
+          </div>
+        </>
+      ) : (
+        // 普通HTML广告
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">内容（支持HTML）</label>
+            <textarea
+              value={editingItem?.content || ''}
+              onChange={(e) => setEditingItem({ ...editingItem, content: e.target.value })}
+              className="input-field font-mono text-sm"
+              rows={8}
+              placeholder="<div>HTML内容</div>"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">预览</label>
+            <div 
+              className="border rounded-lg p-4 bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: editingItem?.content || '' }}
+            />
+          </div>
+        </>
+      )}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">显示位置</label>
@@ -886,11 +996,47 @@ export const ContentManagement: React.FC = () => {
             <div key={adId} className="card">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">{ad.title}</h3>
-                  <div 
-                    className="text-gray-600 text-sm mt-2 p-3 bg-gray-50 rounded"
-                    dangerouslySetInnerHTML={{ __html: ad.content }}
-                  />
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900">{ad.title}</h3>
+                    {ad.type === 'carousel' && (
+                      <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                        轮播广告
+                      </span>
+                    )}
+                  </div>
+                  
+                  {ad.type === 'carousel' ? (
+                    // 轮播广告预览
+                    <div className="text-gray-600 text-sm mt-2">
+                      <p className="mb-1">📸 图片数量: {ad.carouselImages?.length || 0}</p>
+                      <p className="mb-1">⏱️ 切换间隔: {ad.carouselInterval || 5000}ms</p>
+                      <p className="mb-1">📏 高度: {ad.carouselHeight || '400px'}</p>
+                      {ad.carouselImages && ad.carouselImages.length > 0 && (
+                        <div className="mt-2 flex gap-2 overflow-x-auto">
+                          {ad.carouselImages.slice(0, 3).map((img: string, idx: number) => (
+                            <img 
+                              key={idx} 
+                              src={img} 
+                              alt={`预览 ${idx + 1}`}
+                              className="h-20 w-auto object-cover rounded border"
+                            />
+                          ))}
+                          {ad.carouselImages.length > 3 && (
+                            <div className="h-20 w-20 flex items-center justify-center bg-gray-100 rounded border text-gray-500 text-sm">
+                              +{ad.carouselImages.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // 普通HTML广告预览
+                    <div 
+                      className="text-gray-600 text-sm mt-2 bg-gray-50 rounded overflow-hidden ad-content"
+                      dangerouslySetInnerHTML={{ __html: ad.content }}
+                    />
+                  )}
+                  
                   <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                     <span>位置: {positionLabels[ad.position] || ad.position}</span>
                     <span>排序: {ad.order}</span>

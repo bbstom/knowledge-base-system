@@ -9,7 +9,37 @@ const advertisementSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: true
+    required: false,  // 轮播广告不需要content
+    default: ''
+  },
+  // 广告类型：html（普通HTML）或 carousel（轮播）
+  type: {
+    type: String,
+    enum: ['html', 'carousel'],
+    default: 'html'
+  },
+  // 轮播广告配置
+  carouselImages: [{
+    type: String  // 图片URL数组
+  }],
+  carouselLinks: [{
+    type: String  // 对应的链接URL数组
+  }],
+  carouselInterval: {
+    type: Number,
+    default: 5000  // 自动切换间隔（毫秒）
+  },
+  carouselHeight: {
+    type: String,
+    default: '400px'  // 轮播高度
+  },
+  showControls: {
+    type: Boolean,
+    default: true  // 是否显示左右箭头
+  },
+  showIndicators: {
+    type: Boolean,
+    default: true  // 是否显示指示器
   },
   position: {
     type: String,

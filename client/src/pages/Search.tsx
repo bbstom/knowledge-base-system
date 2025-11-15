@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search as SearchIcon, Database } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
+import { AdCarousel } from '../components/AdCarousel';
 import { searchApi } from '../utils/api';
 import { isAuthenticated } from '../utils/auth';
 import { useNavigate } from 'react-router-dom';
@@ -148,8 +149,8 @@ export const Search: React.FC = () => {
   };
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout containerSize="xl">
+      <div className="py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
             信息搜索
@@ -231,17 +232,36 @@ export const Search: React.FC = () => {
         {/* Advertisements */}
         {advertisements.length > 0 && (
           <div className="mb-8 space-y-4">
-            {advertisements.map((ad: any) => (
-              <div
-                key={ad._id || ad.id}
-                className="card bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500"
-              >
-                <div 
-                  className="prose max-w-none"
-                  dangerouslySetInnerHTML={{ __html: ad.content }}
-                />
-              </div>
-            ))}
+            {advertisements.map((ad: any) => {
+              // 检查是否是轮播广告
+              if (ad.type === 'carousel' && ad.carouselImages && ad.carouselImages.length > 0) {
+                return (
+                  <div key={ad._id || ad.id}>
+                    <AdCarousel
+                      images={ad.carouselImages}
+                      links={ad.carouselLinks || []}
+                      interval={ad.carouselInterval || 5000}
+                      height={ad.carouselHeight || '400px'}
+                      showControls={ad.showControls !== false}
+                      showIndicators={ad.showIndicators !== false}
+                    />
+                  </div>
+                );
+              }
+              
+              // 普通HTML广告
+              return (
+                <div
+                  key={ad._id || ad.id}
+                  className="bg-white rounded-lg shadow-sm border-l-4 border-blue-500 overflow-hidden"
+                >
+                  <div 
+                    className="ad-content"
+                    dangerouslySetInnerHTML={{ __html: ad.content }}
+                  />
+                </div>
+              );
+            })}
           </div>
         )}
 

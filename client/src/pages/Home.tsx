@@ -46,7 +46,7 @@ export const Home: React.FC = () => {
   ];
 
   return (
-    <Layout>
+    <Layout noPadding>
       {/* Hero Section - 增强版 */}
       <section className="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
         {/* 背景装饰 */}
