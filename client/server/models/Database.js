@@ -32,6 +32,10 @@ const databaseSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  leakDate: {
+    type: Date,
+    default: null
+  },
   supportedTypes: [{
     type: String
     // 移除enum限制，允许动态添加搜索类型

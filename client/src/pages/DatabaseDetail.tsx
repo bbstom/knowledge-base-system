@@ -185,6 +185,14 @@ export const DatabaseDetail: React.FC = () => {
                     {database.lastUpdated ? new Date(database.lastUpdated).toLocaleDateString() : '2024-01-01'}
                   </span>
                 </div>
+                {database.leakDate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">泄露时间:</span>
+                    <span className="font-medium text-red-600">
+                      {new Date(database.leakDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

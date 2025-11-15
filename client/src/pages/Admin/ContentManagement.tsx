@@ -308,7 +308,8 @@ export const ContentManagement: React.FC = () => {
         isActive: true,
         status: 'normal',
         recordCount: 0,
-        lastUpdated: new Date().toISOString().split('T')[0],
+        lastUpdated: '',  // 留空，让用户选择
+        leakDate: null,
         supportedTypes: []
       });
     } else if (activeTab === 'faq') {
@@ -378,14 +379,27 @@ export const ContentManagement: React.FC = () => {
           />
         </div>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">更新时间</label>
-        <input
-          type="date"
-          value={editingItem?.lastUpdated ? new Date(editingItem.lastUpdated).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
-          onChange={(e) => setEditingItem({ ...editingItem, lastUpdated: e.target.value })}
-          className="input-field"
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">更新时间</label>
+          <input
+            type="date"
+            value={editingItem?.lastUpdated ? new Date(editingItem.lastUpdated).toISOString().split('T')[0] : ''}
+            onChange={(e) => setEditingItem({ ...editingItem, lastUpdated: e.target.value })}
+            className="input-field"
+            placeholder="选择更新时间"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">泄露时间（可选）</label>
+          <input
+            type="date"
+            value={editingItem?.leakDate ? new Date(editingItem.leakDate).toISOString().split('T')[0] : ''}
+            onChange={(e) => setEditingItem({ ...editingItem, leakDate: e.target.value || null })}
+            className="input-field"
+            placeholder="选择泄露时间"
+          />
+        </div>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">支持的搜索类型</label>

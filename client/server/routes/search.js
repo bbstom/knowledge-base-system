@@ -450,7 +450,7 @@ router.get('/databases', async (req, res) => {
     
     // 从Database模型获取启用的数据库列表
     const databases = await Database.find({ isActive: true })
-      .select('name description recordCount supportedTypes lastUpdated source status isActive')
+      .select('name description recordCount supportedTypes lastUpdated leakDate source status isActive')
       .sort({ order: 1, name: 1 })
       .lean();
 
@@ -462,6 +462,7 @@ router.get('/databases', async (req, res) => {
       recordCount: db.recordCount || 0,
       supportedTypes: db.supportedTypes || ['name', 'phone', 'idcard', 'qq', 'wechat', 'email', 'address', 'company'],
       lastUpdated: db.lastUpdated || new Date(),
+      leakDate: db.leakDate || null,
       source: db.source || '官方数据',
       status: db.status || 'normal',
       isActive: db.isActive !== undefined ? db.isActive : true

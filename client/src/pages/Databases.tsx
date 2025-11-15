@@ -222,6 +222,14 @@ export const Databases: React.FC = () => {
                     {db.lastUpdated ? new Date(db.lastUpdated).toLocaleDateString() : '2024-01-01'}
                   </span>
                 </div>
+                {db.leakDate && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">泄露时间:</span>
+                    <span className="font-medium text-red-600">
+                      {new Date(db.leakDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
                 <div className="text-sm">
                   <span className="text-gray-600 block mb-2">支持搜索:</span>
                   <div className="flex flex-wrap gap-1">

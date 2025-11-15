@@ -71,6 +71,7 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
       status: db.status,
       source: db.source,
       lastUpdated: db.lastUpdated,
+      leakDate: db.leakDate,
       createdAt: db.createdAt,
       updatedAt: db.updatedAt
     }));
@@ -118,6 +119,7 @@ router.get('/:id', authMiddleware, adminMiddleware, async (req, res) => {
       status: database.status,
       source: database.source,
       lastUpdated: database.lastUpdated,
+      leakDate: database.leakDate,
       createdAt: database.createdAt,
       updatedAt: database.updatedAt
     };
@@ -138,13 +140,13 @@ router.get('/:id', authMiddleware, adminMiddleware, async (req, res) => {
  */
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, searchTypes, supportedTypes, recordCount, isActive, source, status } = req.body;
+    const { name, description, searchTypes, supportedTypes, recordCount, isActive, source, status, lastUpdated, leakDate } = req.body;
 
     if (!name) {
       return res.status(400).json({ success: false, message: '请填写数据库名称' });
     }
 
-    console.log(`📝 创建数据库:`, { name, searchTypes, supportedTypes, recordCount, isActive, source, status });
+    console.log(`📝 创建数据库:`, { name, searchTypes, supportedTypes, recordCount, isActive, source, status, lastUpdated, leakDate });
 
     // 创建数据库记录（支持 searchTypes 和 supportedTypes 两种字段名）
     const database = new Database({
@@ -155,6 +157,8 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
       isActive: isActive !== undefined ? isActive : true,
       source: source || '官方数据',
       status: status || 'normal',
+      lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
+      leakDate: leakDate ? new Date(leakDate) : null,
       createdBy: req.user._id
     });
 
@@ -175,6 +179,7 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
       status: database.status,
       source: database.source,
       lastUpdated: database.lastUpdated,
+      leakDate: database.leakDate,
       createdAt: database.createdAt
     };
 
@@ -195,11 +200,11 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
  */
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { name, description, searchTypes, supportedTypes, recordCount, isActive, source, status } = req.body;
+    const { name, description, searchTypes, supportedTypes, recordCount, isActive, source, status, lastUpdated, leakDate } = req.body;
     const requestId = req.params.id;
     
     console.log(`🔍 查找数据库 ID: ${requestId}`);
-    console.log(`📝 更新数据:`, { name, searchTypes, supportedTypes, recordCount, isActive, source, status });
+    console.log(`📝 更新数据:`, { name, searchTypes, supportedTypes, recordCount, isActive, source, status, lastUpdated, leakDate });
     
     const database = await Database.findById(requestId);
 
@@ -217,7 +222,9 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     if (isActive !== undefined) database.isActive = isActive;
     if (source !== undefined) database.source = source;
     if (status !== undefined) database.status = status;
-    database.lastUpdated = new Date();
+    // 只有在提供了lastUpdated时才更新，否则保持原值
+    if (lastUpdated !== undefined) database.lastUpdated = new Date(lastUpdated);
+    if (leakDate !== undefined) database.leakDate = leakDate ? new Date(leakDate) : null;
 
     await database.save();
 
@@ -236,6 +243,7 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
       status: database.status,
       source: database.source,
       lastUpdated: database.lastUpdated,
+      leakDate: database.leakDate,
       createdAt: database.createdAt,
       updatedAt: database.updatedAt
     };
