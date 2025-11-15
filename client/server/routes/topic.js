@@ -93,7 +93,7 @@ router.get('/admin', authMiddleware, adminMiddleware, async (req, res) => {
 // 创建话题（管理员）
 router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { title, content, category, tags, isHot, isActive, publishedAt } = req.body;
+    const { title, content, category, tags, isHot, isActive, publishedAt, customUpdatedAt } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({
@@ -110,6 +110,7 @@ router.post('/', authMiddleware, adminMiddleware, async (req, res) => {
       isHot: isHot || false,
       isActive: isActive !== undefined ? isActive : true,
       publishedAt: publishedAt || Date.now(),
+      customUpdatedAt: customUpdatedAt ? new Date(customUpdatedAt) : null,
       createdBy: req.user._id
     });
 
@@ -136,7 +137,7 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
       return res.status(404).json({ success: false, message: '话题不存在' });
     }
 
-    const { title, content, category, tags, isHot, isActive, publishedAt } = req.body;
+    const { title, content, category, tags, isHot, isActive, publishedAt, customUpdatedAt } = req.body;
 
     if (title !== undefined) topic.title = title;
     if (content !== undefined) topic.content = content;
@@ -145,6 +146,7 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     if (isHot !== undefined) topic.isHot = isHot;
     if (isActive !== undefined) topic.isActive = isActive;
     if (publishedAt !== undefined) topic.publishedAt = publishedAt;
+    if (customUpdatedAt !== undefined) topic.customUpdatedAt = customUpdatedAt ? new Date(customUpdatedAt) : null;
 
     await topic.save();
 

@@ -22,6 +22,8 @@ export const Databases: React.FC = () => {
   const [databases, setDatabases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(6); // 每页显示6个
   const [searchTypeLabels, setSearchTypeLabels] = useState<Record<string, string>>({
     'idcard': '身份证',
     'phone': '手机号',
@@ -92,6 +94,17 @@ export const Databases: React.FC = () => {
     db.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // 分页逻辑
+  const totalPages = Math.ceil(filteredDatabases.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentDatabases = filteredDatabases.slice(startIndex, endIndex);
+
+  // 当搜索词改变时重置到第一页
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   if (loading) {
     return (
       <Layout>
@@ -150,8 +163,8 @@ export const Databases: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDatabases.map((db) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {currentDatabases.map((db) => (
             <div key={db._id || db.id} className="card hover:shadow-lg transition-shadow flex flex-col">
               {/* 头部 */}
               <div className="flex items-start justify-between mb-3">
@@ -278,6 +291,66 @@ export const Databases: React.FC = () => {
                 ? '管理员还未添加任何数据清单，请稍后再试' 
                 : '请尝试使用不同的关键词搜索'}
             </p>
+          </div>
+        )}
+
+        {/* 分页控件 */}
+        {filteredDatabases.length > 0 && totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentPage === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              上一页
+            </button>
+            
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                // 只显示当前页附近的页码
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                        currentPage === page
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                } else if (
+                  page === currentPage - 2 ||
+                  page === currentPage + 2
+                ) {
+                  return <span key={page} className="px-2 text-gray-400">...</span>;
+                }
+                return null;
+              })}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                currentPage === totalPages
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+              }`}
+            >
+              下一页
+            </button>
           </div>
         )}
       </div>

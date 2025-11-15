@@ -2,8 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Database, Shield, Zap, Users, Award, ArrowRight, Star, TrendingUp, CheckCircle, Sparkles } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
+import { useSiteConfig } from '../hooks/useSiteConfig';
 
 export const Home: React.FC = () => {
+  const { config } = useSiteConfig();
   const features = [
     {
       icon: Search,
@@ -65,15 +67,13 @@ export const Home: React.FC = () => {
             {/* 主标题 */}
             <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
-                专业信息搜索平台
+                {config.siteName}
               </span>
             </h1>
             
             {/* 副标题 */}
             <p className="text-xl md:text-2xl mb-10 text-blue-100 max-w-3xl mx-auto leading-relaxed">
-              快速、安全、准确的数据查询服务
-              <br />
-              <span className="text-lg text-blue-200">让信息触手可及，让搜索更简单</span>
+              {config.siteDescription}
             </p>
 
             {/* 按钮组 */}

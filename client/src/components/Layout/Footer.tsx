@@ -17,21 +17,60 @@ export const Footer: React.FC = () => {
   });
 
   React.useEffect(() => {
-    // 从localStorage加载配置
-    const savedConfig = localStorage.getItem('siteConfig');
-    if (savedConfig) {
-      const config = JSON.parse(savedConfig);
-      // 确保socialLinks存在
-      setSiteConfig({
-        ...config,
-        socialLinks: config.socialLinks || {
-          wechat: '',
-          qq: '',
-          weibo: '',
-          twitter: ''
+    // 从API加载最新配置
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/site-config/public');
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          const config = data.data;
+          setSiteConfig({
+            ...config,
+            socialLinks: config.socialLinks || {
+              wechat: '',
+              qq: '',
+              weibo: '',
+              twitter: ''
+            }
+          });
+          localStorage.setItem('siteConfig', JSON.stringify(config));
+        } else {
+          // 如果API失败，从localStorage加载
+          const savedConfig = localStorage.getItem('siteConfig');
+          if (savedConfig) {
+            const config = JSON.parse(savedConfig);
+            setSiteConfig({
+              ...config,
+              socialLinks: config.socialLinks || {
+                wechat: '',
+                qq: '',
+                weibo: '',
+                twitter: ''
+              }
+            });
+          }
         }
-      });
-    }
+      } catch (error) {
+        console.error('Failed to load site config:', error);
+        // 从localStorage加载
+        const savedConfig = localStorage.getItem('siteConfig');
+        if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          setSiteConfig({
+            ...config,
+            socialLinks: config.socialLinks || {
+              wechat: '',
+              qq: '',
+              weibo: '',
+              twitter: ''
+            }
+          });
+        }
+      }
+    };
+
+    loadConfig();
 
     // 监听配置更新
     const handleConfigUpdate = (e: any) => {

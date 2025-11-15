@@ -94,8 +94,27 @@ export const SiteConfig: React.FC = () => {
 
             if (data.success) {
                 localStorage.setItem('siteConfig', JSON.stringify(config));
+                
+                // 更新页面标题：网站名称 - 网站简介
+                const title = config.siteDescription 
+                    ? `${config.siteName} - ${config.siteDescription}`
+                    : config.siteName;
+                document.title = title;
+                
+                // 更新favicon
+                if (config.faviconUrl) {
+                    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.rel = 'icon';
+                        document.head.appendChild(link);
+                    }
+                    link.href = config.faviconUrl;
+                }
+                
+                // 触发全局配置更新事件
                 window.dispatchEvent(new CustomEvent('siteConfigUpdated', { detail: config }));
-                toast.success('配置已保存到数据库');
+                toast.success('配置已保存并立即生效');
             } else {
                 toast.error(data.message || '保存失败');
             }

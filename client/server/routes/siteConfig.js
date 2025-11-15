@@ -52,6 +52,40 @@ const adminMiddleware = (req, res, next) => {
 
 /**
  * 获取网站配置（公开）
+ * GET /api/site-config/public
+ */
+router.get('/public', async (req, res) => {
+  try {
+    const config = await SiteConfig.getConfig();
+    
+    // 不返回敏感信息
+    const publicConfig = {
+      siteName: config.siteName,
+      siteDescription: config.siteDescription,
+      logoUrl: config.logoUrl,
+      faviconUrl: config.faviconUrl,
+      footerText: config.footerText,
+      contactEmail: config.contactEmail,
+      contactPhone: config.contactPhone,
+      contactAddress: config.contactAddress,
+      socialLinks: config.socialLinks
+    };
+
+    res.json({
+      success: true,
+      data: publicConfig
+    });
+  } catch (error) {
+    console.error('Get site config error:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取配置失败'
+    });
+  }
+});
+
+/**
+ * 获取网站配置（公开 - 兼容旧路径）
  * GET /api/site-config
  */
 router.get('/', async (req, res) => {

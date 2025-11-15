@@ -201,8 +201,12 @@ export const ContentManagement: React.FC = () => {
           }
         }
       } else if (activeTab === 'topics') {
+        console.log('保存话题数据:', editingItem);
+        console.log('customUpdatedAt:', editingItem.customUpdatedAt);
+        
         if (isAdding) {
           const response = await topicApi.create(editingItem);
+          console.log('创建话题响应:', response);
           if (response.success) {
             toast.success('话题已创建');
             await loadContent();
@@ -211,6 +215,7 @@ export const ContentManagement: React.FC = () => {
           }
         } else {
           const response = await topicApi.update(editingItem._id || editingItem.id, editingItem);
+          console.log('更新话题响应:', response);
           if (response.success) {
             toast.success('话题已更新');
             await loadContent();
@@ -551,8 +556,25 @@ export const ContentManagement: React.FC = () => {
         <label className="block text-sm font-medium text-gray-700 mb-2">自定义更新时间</label>
         <input
           type="datetime-local"
-          value={editingItem?.customUpdatedAt ? new Date(editingItem.customUpdatedAt).toISOString().slice(0, 16) : ''}
-          onChange={(e) => setEditingItem({ ...editingItem, customUpdatedAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
+          value={(() => {
+            if (!editingItem?.customUpdatedAt) return '';
+            try {
+              const date = new Date(editingItem.customUpdatedAt);
+              // 转换为本地时间的 datetime-local 格式
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              const hours = String(date.getHours()).padStart(2, '0');
+              const minutes = String(date.getMinutes()).padStart(2, '0');
+              return `${year}-${month}-${day}T${hours}:${minutes}`;
+            } catch (e) {
+              return '';
+            }
+          })()}
+          onChange={(e) => {
+            const newValue = e.target.value ? new Date(e.target.value).toISOString() : null;
+            setEditingItem({ ...editingItem, customUpdatedAt: newValue });
+          }}
           className="input-field"
         />
         <p className="text-xs text-gray-500 mt-1">留空则使用系统自动更新时间</p>

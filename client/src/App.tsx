@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { UserProvider } from './contexts/UserContext';
 import { ReferralTracker } from './components/ReferralTracker';
+import { SiteConfigLoader } from './components/SiteConfigLoader';
 import { Home } from './pages/Home';
 import { Search } from './pages/Search';
 import { Databases } from './pages/Databases';
@@ -83,6 +84,7 @@ function App() {
   return (
     <UserProvider>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <SiteConfigLoader />
         <ReferralTracker />
         <NotificationModal />
         <div className="App">

@@ -40,12 +40,27 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle }) => {
 
   // 加载网站配置
   useEffect(() => {
-    const loadSiteConfig = () => {
-      const savedConfig = localStorage.getItem('siteConfig');
-      if (savedConfig) {
-        const config = JSON.parse(savedConfig);
-        setSiteName(config.siteName || 'InfoSearch');
-        setLogoUrl(config.logoUrl || '');
+    const loadSiteConfig = async () => {
+      try {
+        // 先从localStorage快速加载
+        const savedConfig = localStorage.getItem('siteConfig');
+        if (savedConfig) {
+          const config = JSON.parse(savedConfig);
+          setSiteName(config.siteName || 'InfoSearch');
+          setLogoUrl(config.logoUrl || '');
+        }
+
+        // 然后从API加载最新配置
+        const response = await fetch('/api/site-config/public');
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setSiteName(data.data.siteName || 'InfoSearch');
+          setLogoUrl(data.data.logoUrl || '');
+          localStorage.setItem('siteConfig', JSON.stringify(data.data));
+        }
+      } catch (error) {
+        console.error('Failed to load site config:', error);
       }
     };
 

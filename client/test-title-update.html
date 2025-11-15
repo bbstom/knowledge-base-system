@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试标题更新</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .current-title {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            font-size: 18px;
+            border: 2px solid #667eea;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 标题更新测试工具</h1>
+        
+        <div class="current-title">
+            当前标题: <span id="currentTitle"></span>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 测试步骤</h3>
+            <div class="step">1️⃣ 点击"获取配置"按钮，查看当前网站配置</div>
+            <div class="step">2️⃣ 点击"模拟更新"按钮，测试标题更新功能</div>
+            <div class="step">3️⃣ 观察页面标题是否立即改变</div>
+            <div class="step">4️⃣ 打开浏览器控制台查看详细日志</div>
+        </div>
+
+        <div>
+            <button onclick="getCurrentConfig()">📥 获取配置</button>
+            <button onclick="simulateUpdate()">🔄 模拟更新</button>
+            <button onclick="testTitleUpdate()">✏️ 测试标题更新</button>
+            <button onclick="clearLog()">🧹 清除日志</button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const logDiv = document.getElementById('log');
+        const titleSpan = document.getElementById('currentTitle');
+
+        // 更新显示的当前标题
+        function updateTitleDisplay() {
+            titleSpan.textContent = document.title;
+        }
+
+        // 初始化
+        updateTitleDisplay();
+        setInterval(updateTitleDisplay, 500); // 每500ms更新一次显示
+
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            logDiv.appendChild(div);
+            console.log(message);
+        }
+
+        async function getCurrentConfig() {
+            try {
+                log('🔍 正在获取网站配置...', 'info');
+                
+                const response = await fetch('/api/site-config/public');
+                const data = await response.json();
+                
+                if (data.success) {
+                    log('✅ 配置获取成功', 'success');
+                    log(`<pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'info');
+                    
+                    // 应用配置
+                    document.title = data.data.siteName;
+                    updateTitleDisplay();
+                    log(`✅ 标题已更新为: ${data.data.siteName}`, 'success');
+                } else {
+                    log('❌ 获取配置失败: ' + data.message, 'error');
+                }
+            } catch (error) {
+                log('❌ 请求失败: ' + error.message, 'error');
+            }
+        }
+
+        function simulateUpdate() {
+            const testConfig = {
+                siteName: '测试网站 - ' + new Date().toLocaleTimeString(),
+                siteDescription: '这是一个测试描述',
+                logoUrl: '',
+                faviconUrl: '',
+                footerText: '© 2024 测试网站',
+                contactEmail: 'test@example.com',
+                contactPhone: '123-456-7890',
+                contactAddress: '测试地址',
+                socialLinks: {
+                    wechat: '',
+                    qq: '',
+                    weibo: '',
+                    twitter: ''
+                }
+            };
+
+            log('🔔 触发配置更新事件...', 'info');
+            window.dispatchEvent(new CustomEvent('siteConfigUpdated', { 
+                detail: testConfig 
+            }));
+
+            // 更新标题
+            document.title = testConfig.siteName;
+            updateTitleDisplay();
+            
+            log(`✅ 标题已更新为: ${testConfig.siteName}`, 'success');
+            log('<pre>' + JSON.stringify(testConfig, null, 2) + '</pre>', 'info');
+        }
+
+        function testTitleUpdate() {
+            const titles = [
+                '测试标题 1',
+                '测试标题 2 - 中文',
+                'Test Title 3 - English',
+                '🎉 测试标题 4 - 带表情',
+                '测试标题 5 - ' + new Date().toLocaleString()
+            ];
+
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index >= titles.length) {
+                    clearInterval(interval);
+                    log('✅ 标题更新测试完成', 'success');
+                    return;
+                }
+
+                document.title = titles[index];
+                updateTitleDisplay();
+                log(`✏️ 标题更新为: ${titles[index]}`, 'info');
+                index++;
+            }, 1000);
+        }
+
+        function clearLog() {
+            logDiv.innerHTML = '';
+            console.clear();
+            log('🧹 日志已清除', 'info');
+        }
+
+        // 监听配置更新事件
+        window.addEventListener('siteConfigUpdated', (e) => {
+            log('📢 收到配置更新事件', 'success');
+            log('<pre>' + JSON.stringify(e.detail, null, 2) + '</pre>', 'info');
+        });
+
+        // 页面加载完成
+        window.addEventListener('load', () => {
+            log('🚀 测试工具已就绪', 'success');
+            log(`📍 当前URL: ${window.location.href}`, 'info');
+            log(`📋 当前标题: ${document.title}`, 'info');
+        });
+    </script>
+</body>
+</html>

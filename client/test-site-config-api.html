@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试网站配置API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        pre {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 网站配置API测试工具</h1>
+        
+        <div class="info">
+            <strong>测试说明：</strong>
+            <ul>
+                <li>点击"获取公开配置"测试 GET /api/site-config/public</li>
+                <li>点击"测试配置更新"模拟配置更新事件</li>
+                <li>打开浏览器控制台查看详细日志</li>
+            </ul>
+        </div>
+
+        <div>
+            <button onclick="testPublicConfig()">获取公开配置</button>
+            <button onclick="testConfigUpdate()">测试配置更新</button>
+            <button onclick="clearResults()">清除结果</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const resultDiv = document.getElementById('result');
+
+        function showResult(title, data, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'result' + (isError ? ' error' : '');
+            div.innerHTML = `
+                <h3>${title}</h3>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultDiv.appendChild(div);
+        }
+
+        async function testPublicConfig() {
+            try {
+                console.log('🔍 测试: GET /api/site-config/public');
+                const response = await fetch('/api/site-config/public');
+                const data = await response.json();
+                
+                console.log('✅ 响应:', data);
+                showResult('✅ 公开配置获取成功', data);
+
+                // 测试配置应用
+                if (data.success && data.data) {
+                    document.title = data.data.siteName;
+                    console.log('✅ 页面标题已更新为:', data.data.siteName);
+                    
+                    if (data.data.faviconUrl) {
+                        let link = document.querySelector("link[rel~='icon']");
+                        if (!link) {
+                            link = document.createElement('link');
+                            link.rel = 'icon';
+                            document.head.appendChild(link);
+                        }
+                        link.href = data.data.faviconUrl;
+                        console.log('✅ Favicon已更新');
+                    }
+                }
+            } catch (error) {
+                console.error('❌ 错误:', error);
+                showResult('❌ 获取配置失败', { error: error.message }, true);
+            }
+        }
+
+        function testConfigUpdate() {
+            const testConfig = {
+                siteName: '测试网站名称',
+                siteDescription: '这是一个测试描述',
+                logoUrl: '',
+                faviconUrl: '',
+                footerText: '© 2024 测试网站',
+                contactEmail: 'test@example.com',
+                contactPhone: '123-456-7890',
+                contactAddress: '测试地址',
+                socialLinks: {
+                    wechat: '',
+                    qq: '',
+                    weibo: '',
+                    twitter: ''
+                }
+            };
+
+            console.log('🔔 触发配置更新事件:', testConfig);
+            window.dispatchEvent(new CustomEvent('siteConfigUpdated', { 
+                detail: testConfig 
+            }));
+
+            showResult('✅ 配置更新事件已触发', testConfig);
+            
+            // 更新页面标题
+            document.title = testConfig.siteName;
+            console.log('✅ 页面标题已更新为:', testConfig.siteName);
+        }
+
+        function clearResults() {
+            resultDiv.innerHTML = '';
+            console.clear();
+            console.log('🧹 结果已清除');
+        }
+
+        // 监听配置更新事件
+        window.addEventListener('siteConfigUpdated', (e) => {
+            console.log('📢 收到配置更新事件:', e.detail);
+            showResult('📢 收到配置更新事件', e.detail);
+        });
+
+        // 页面加载时自动测试
+        window.addEventListener('load', () => {
+            console.log('🚀 页面加载完成，准备测试');
+            console.log('📍 当前URL:', window.location.href);
+        });
+    </script>
+</body>
+</html>
