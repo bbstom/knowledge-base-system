@@ -159,8 +159,13 @@ export const ContentManagement: React.FC = () => {
     setSaving(true);
     try {
       if (activeTab === 'databases') {
+        // 打印调试信息
+        console.log('保存数据清单:', editingItem);
+        console.log('supportedTypes:', editingItem.supportedTypes);
+        
         if (isAdding) {
           const response = await databaseApi.create(editingItem);
+          console.log('创建响应:', response);
           if (response.success) {
             toast.success('数据库已创建');
             await loadContent();
@@ -169,6 +174,7 @@ export const ContentManagement: React.FC = () => {
           }
         } else {
           const response = await databaseApi.update(editingItem._id, editingItem);
+          console.log('更新响应:', response);
           if (response.success) {
             toast.success('数据库已更新');
             await loadContent();

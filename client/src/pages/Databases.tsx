@@ -22,9 +22,7 @@ export const Databases: React.FC = () => {
   const [databases, setDatabases] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
-  // 搜索类型映射
-  const searchTypeLabels: Record<string, string> = {
+  const [searchTypeLabels, setSearchTypeLabels] = useState<Record<string, string>>({
     'idcard': '身份证',
     'phone': '手机号',
     'name': '姓名',
@@ -34,11 +32,36 @@ export const Databases: React.FC = () => {
     'email': '邮箱',
     'address': '地址',
     'company': '公司',
-  };
+  });
 
   useEffect(() => {
+    loadSearchTypes();
     loadDatabases();
   }, []);
+
+  const loadSearchTypes = async () => {
+    try {
+      const response = await fetch('/api/system-config/search-types/public', {
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success && data.data) {
+        // 构建ID到名称的映射（不区分大小写）
+        const labels: Record<string, string> = {};
+        data.data.forEach((type: any) => {
+          // 同时存储原始ID和小写ID
+          labels[type.id] = type.label;
+          labels[type.id.toLowerCase()] = type.label;
+        });
+        console.log('✅ 加载搜索类型映射:', labels);
+        setSearchTypeLabels(labels);
+      }
+    } catch (error) {
+      console.error('加载搜索类型失败:', error);
+      // 使用默认值
+    }
+  };
 
   const loadDatabases = async () => {
     try {
@@ -203,14 +226,18 @@ export const Databases: React.FC = () => {
                   <span className="text-gray-600 block mb-2">支持搜索:</span>
                   <div className="flex flex-wrap gap-1">
                     {db.supportedTypes && db.supportedTypes.length > 0 ? (
-                      db.supportedTypes.map((type: string) => (
-                        <span
-                          key={type}
-                          className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
-                        >
-                          {searchTypeLabels[type] || type}
-                        </span>
-                      ))
+                      db.supportedTypes.map((type: string) => {
+                        const label = searchTypeLabels[type] || type;
+                        console.log(`类型映射: ${type} -> ${label}`, searchTypeLabels);
+                        return (
+                          <span
+                            key={type}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs"
+                          >
+                            {label}
+                          </span>
+                        );
+                      })
                     ) : (
                       <span className="text-gray-400 text-xs">全部类型</span>
                     )}

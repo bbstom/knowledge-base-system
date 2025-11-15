@@ -33,8 +33,8 @@ const databaseSchema = new mongoose.Schema({
     default: Date.now
   },
   supportedTypes: [{
-    type: String,
-    enum: ['idcard', 'phone', 'name', 'qq', 'weibo', 'wechat', 'email', 'address', 'company']
+    type: String
+    // 移除enum限制，允许动态添加搜索类型
   }],
   // 数据库配置信息（可选）
   config: {

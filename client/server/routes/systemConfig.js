@@ -782,6 +782,30 @@ router.put('/timezone', authMiddleware, adminMiddleware, async (req, res) => {
 });
 
 /**
+ * 获取公开的搜索类型配置（不需要登录）
+ * GET /api/system-config/search-types/public
+ */
+router.get('/search-types/public', async (req, res) => {
+  try {
+    const config = await SystemConfig.getConfig();
+    
+    // 只返回启用的搜索类型
+    const searchTypes = (config.searchTypes || []).filter(type => type.enabled);
+    
+    res.json({
+      success: true,
+      data: searchTypes
+    });
+  } catch (error) {
+    console.error('Get public search types error:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取搜索类型失败'
+    });
+  }
+});
+
+/**
  * 获取公开的系统配置（不需要管理员权限）
  * GET /api/system/config
  */
