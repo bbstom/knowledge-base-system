@@ -11,7 +11,7 @@ export interface ApiResponse<T = any> {
 
 // 创建 axios 实例
 const api = axios.create({
-  baseURL: '/api', // 使用代理
+  baseURL: import.meta.env.VITE_API_URL || '/api', // 使用环境变量或代理
   timeout: 10000,
   withCredentials: true, // 重要！允许发送Cookie
   headers: {

@@ -1,7 +1,7 @@
 // 真实的API服务 - 连接后端
 import Cookies from 'js-cookie';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 // 获取存储的token（使用Cookies，与auth.ts保持一致）
 const getToken = (): string | null => {
