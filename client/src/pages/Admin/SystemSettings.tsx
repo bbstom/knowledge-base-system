@@ -26,13 +26,22 @@ export const SystemSettings: React.FC = () => {
                 return false;
             }
             
+            // 根据类型构建正确的请求体
+            let body;
+            if (type === 'search-types') {
+                body = JSON.stringify({ searchTypes: config });
+            } else {
+                body = JSON.stringify({ [type]: config });
+            }
+            
             const response = await fetch(`/api/system-config/${type}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ [type]: config })
+                credentials: 'include',
+                body: body
             });
 
             const data = await response.json();
@@ -171,7 +180,14 @@ export const SystemSettings: React.FC = () => {
                     {activeTab === 'searchTypes' && (
                         <SearchTypeConfig
                             searchTypes={searchTypes}
-                            onUpdateSearchTypes={setSearchTypes}
+                            onUpdateSearchTypes={async (types) => {
+                                setSearchTypes(types);
+                                const success = await saveSettings('search-types', types);
+                                if (success) {
+                                    await loadSettings(); // 重新加载配置
+                                }
+                                return success;
+                            }}
                         />
                     )}
                     {activeTab === 'points' && (

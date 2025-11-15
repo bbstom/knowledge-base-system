@@ -35,18 +35,50 @@ export const ContentManagement: React.FC = () => {
   }, [activeTab]); // 当标签切换时重新加载
 
   const loadContent = async () => {
-    // 加载可用的搜索类型
-    setAvailableSearchTypes([
-      { id: 'idcard', label: '身份证' },
-      { id: 'phone', label: '手机号' },
-      { id: 'name', label: '姓名' },
-      { id: 'qq', label: 'QQ号' },
-      { id: 'weibo', label: '微博号' },
-      { id: 'wechat', label: '微信号' },
-      { id: 'email', label: '邮箱' },
-      { id: 'address', label: '地址' },
-      { id: 'company', label: '公司' }
-    ]);
+    // 加载可用的搜索类型 - 从系统配置中获取
+    try {
+      const token = document.cookie.split('token=')[1]?.split(';')[0];
+      const response = await fetch('/api/system-config', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success && data.data.searchTypes) {
+        // 只显示启用的搜索类型
+        const enabledTypes = data.data.searchTypes.filter((t: any) => t.enabled);
+        setAvailableSearchTypes(enabledTypes);
+      } else {
+        // 如果加载失败，使用默认值
+        setAvailableSearchTypes([
+          { id: 'idcard', label: '身份证' },
+          { id: 'phone', label: '手机号' },
+          { id: 'name', label: '姓名' },
+          { id: 'qq', label: 'QQ号' },
+          { id: 'weibo', label: '微博号' },
+          { id: 'wechat', label: '微信号' },
+          { id: 'email', label: '邮箱' },
+          { id: 'address', label: '地址' },
+          { id: 'company', label: '公司' }
+        ]);
+      }
+    } catch (error) {
+      console.error('加载搜索类型失败:', error);
+      // 使用默认值
+      setAvailableSearchTypes([
+        { id: 'idcard', label: '身份证' },
+        { id: 'phone', label: '手机号' },
+        { id: 'name', label: '姓名' },
+        { id: 'qq', label: 'QQ号' },
+        { id: 'weibo', label: '微博号' },
+        { id: 'wechat', label: '微信号' },
+        { id: 'email', label: '邮箱' },
+        { id: 'address', label: '地址' },
+        { id: 'company', label: '公司' }
+      ]);
+    }
 
     // 加载数据库列表
     if (activeTab === 'databases') {

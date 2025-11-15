@@ -33,6 +33,7 @@ import { LotteryManagement } from './pages/Admin/LotteryManagement';
 import { LotteryStatistics } from './pages/Admin/LotteryStatistics';
 import { NotificationManagement } from './pages/Admin/NotificationManagement';
 import { SiteConfig } from './pages/Admin/SiteConfig';
+import { DatabaseManagement } from './pages/Admin/DatabaseManagement';
 import { TicketManagement } from './pages/Admin/TicketManagement';
 import { RechargeConfig } from './pages/Admin/RechargeConfig';
 import { RechargeCardConfig } from './pages/Admin/RechargeCardConfig';
@@ -299,6 +300,14 @@ function App() {
             element={
               <AdminRoute>
                 <SystemSettings />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/databases" 
+            element={
+              <AdminRoute>
+                <DatabaseManagement />
               </AdminRoute>
             } 
           />

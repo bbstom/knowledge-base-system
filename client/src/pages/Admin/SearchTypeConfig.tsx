@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 
 interface SearchTypeConfigProps {
   searchTypes: any[];
-  onUpdateSearchTypes: (types: any[]) => void;
+  onUpdateSearchTypes: (types: any[]) => Promise<boolean> | void;
 }
 
 export const SearchTypeConfig: React.FC<SearchTypeConfigProps> = ({
@@ -14,22 +14,49 @@ export const SearchTypeConfig: React.FC<SearchTypeConfigProps> = ({
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editingItem) return;
-    if (isAdding) {
-      onUpdateSearchTypes([...searchTypes, { ...editingItem, id: editingItem.id || `type_${Date.now()}` }]);
+    
+    const newTypes = isAdding
+      ? [...searchTypes, { ...editingItem, id: editingItem.id || `type_${Date.now()}` }]
+      : searchTypes.map(type => type.id === editingItem.id ? editingItem : type);
+    
+    const result = onUpdateSearchTypes(newTypes);
+    
+    // 如果返回Promise，等待结果
+    if (result instanceof Promise) {
+      const success = await result;
+      if (success) {
+        toast.success(isAdding ? '添加成功' : '保存成功');
+        setEditingItem(null);
+        setIsAdding(false);
+      } else {
+        toast.error('保存失败，请重试');
+      }
     } else {
-      onUpdateSearchTypes(searchTypes.map(type => type.id === editingItem.id ? editingItem : type));
+      toast.success(isAdding ? '添加成功' : '保存成功');
+      setEditingItem(null);
+      setIsAdding(false);
     }
-    toast.success(isAdding ? '添加成功' : '保存成功');
-    setEditingItem(null);
-    setIsAdding(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('确定要删除吗？')) return;
-    onUpdateSearchTypes(searchTypes.filter(type => type.id !== id));
-    toast.success('删除成功');
+    
+    const newTypes = searchTypes.filter(type => type.id !== id);
+    const result = onUpdateSearchTypes(newTypes);
+    
+    // 如果返回Promise，等待结果
+    if (result instanceof Promise) {
+      const success = await result;
+      if (success) {
+        toast.success('删除成功');
+      } else {
+        toast.error('删除失败，请重试');
+      }
+    } else {
+      toast.success('删除成功');
+    }
   };
 
   const handleAdd = () => {
