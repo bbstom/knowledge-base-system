@@ -2,6 +2,10 @@ const RateLimit = require('../models/RateLimit');
 
 // 频率限制配置
 const RATE_LIMITS = {
+  register: {
+    email: { max: 2, window: 24 * 60 * 60 * 1000 }, // 每天最多2次（同一邮箱）
+    ip: { max: 2, window: 3 * 60 * 60 * 1000 }      // 3小时内最多2次（同一IP）
+  },
   send_code: {
     email: { max: 5, window: 60 * 60 * 1000 }, // 每小时最多5次
     ip: { max: 10, window: 60 * 60 * 1000 }     // 每小时最多10次

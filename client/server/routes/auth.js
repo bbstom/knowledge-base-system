@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const BalanceLog = require('../models/BalanceLog');
 const ReferralVisit = require('../models/ReferralVisit');
+const { rateLimitMiddleware } = require('../middleware/rateLimit');
+const { getClientIP, detectReferralCheat, shouldDelayReferralReward } = require('../utils/antiCheat');
 
 /**
  * 生成JWT Token
@@ -24,7 +26,7 @@ const generateReferralCode = () => {
  * 注册
  * POST /api/auth/register
  */
-router.post('/register', async (req, res) => {
+router.post('/register', rateLimitMiddleware('register'), async (req, res) => {
   try {
     const { username, email, password, referralCode } = req.body;
 
@@ -63,12 +65,31 @@ router.post('/register', async (req, res) => {
       referredUserReward: config.points?.referredUserReward
     });
     
+    // 获取注册IP
+    const registrationIp = getClientIP(req);
+    console.log('📍 注册IP:', registrationIp);
+
     // 处理推荐人
     let referredBy = null;
     if (referralCode) {
       const referrer = await User.findOne({ referralCode });
       if (referrer) {
         referredBy = referrer._id;
+        
+        // 反作弊检测
+        const cheatCheck = await detectReferralCheat({
+          referrerId: referrer._id,
+          newUserEmail: email,
+          newUserIp: registrationIp
+        });
+        
+        if (!cheatCheck.allowed) {
+          console.log(`🚫 反作弊拦截: ${cheatCheck.reason}`);
+          return res.status(400).json({
+            success: false,
+            message: cheatCheck.reason
+          });
+        }
       }
     }
 
@@ -89,7 +110,8 @@ router.post('/register', async (req, res) => {
       referralCode: userReferralCode,
       referredBy,
       points: totalInitialPoints,
-      balance: 0
+      balance: 0,
+      registrationIp: registrationIp
     });
 
     await user.save();
@@ -441,8 +463,6 @@ router.post('/claim-daily-points', async (req, res) => {
   }
 });
 
-// 导入频率限制中间件
-const { rateLimitMiddleware } = require('../middleware/rateLimit');
 // 导入滑块验证中间件
 const { verifyCaptchaToken } = require('../middleware/captchaVerify');
 

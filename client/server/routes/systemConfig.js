@@ -850,4 +850,64 @@ router.get('/public-config', async (req, res) => {
   }
 });
 
+/**
+ * 获取登录注册页配置（公开接口）
+ * GET /api/system-config/auth-page
+ */
+router.get('/auth-page', async (req, res) => {
+  try {
+    const config = await SystemConfig.getConfig();
+    
+    res.json({
+      success: true,
+      data: {
+        loginImage: config.authPage?.loginImage || '',
+        loginTips: config.authPage?.loginTips || '欢迎回来！请登录您的账户以继续使用我们的服务。',
+        registerTips: config.authPage?.registerTips || '创建账户即可开始使用我们的专业服务，享受更多功能。'
+      }
+    });
+  } catch (error) {
+    console.error('获取登录页配置失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '获取配置失败'
+    });
+  }
+});
+
+/**
+ * 更新登录注册页配置（管理员）
+ * PUT /api/system-config/auth-page
+ */
+router.put('/auth-page', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { loginImage, loginTips, registerTips } = req.body;
+    
+    const config = await SystemConfig.getConfig();
+    
+    if (!config.authPage) {
+      config.authPage = {};
+    }
+    
+    if (loginImage !== undefined) config.authPage.loginImage = loginImage;
+    if (loginTips !== undefined) config.authPage.loginTips = loginTips;
+    if (registerTips !== undefined) config.authPage.registerTips = registerTips;
+    
+    config.updatedBy = req.user.userId;
+    await config.save();
+    
+    res.json({
+      success: true,
+      message: '登录页配置更新成功',
+      data: config.authPage
+    });
+  } catch (error) {
+    console.error('更新登录页配置失败:', error);
+    res.status(500).json({
+      success: false,
+      message: '更新配置失败'
+    });
+  }
+});
+
 module.exports = router;

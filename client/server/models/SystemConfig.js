@@ -126,6 +126,13 @@ const systemConfigSchema = new mongoose.Schema({
     enabled: { type: Boolean, default: true }
   },
 
+  // 登录注册页配置
+  authPage: {
+    loginImage: { type: String, default: '' }, // 登录页右侧大图URL
+    loginTips: { type: String, default: '欢迎回来！请登录您的账户以继续使用我们的服务。' },
+    registerTips: { type: String, default: '创建账户即可开始使用我们的专业服务，享受更多功能。' }
+  },
+
   // 元数据
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,

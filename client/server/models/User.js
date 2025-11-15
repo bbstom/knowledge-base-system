@@ -94,6 +94,24 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  registrationIp: {
+    type: String,
+    default: null
+  },
+  security: {
+    suspicious: {
+      type: Boolean,
+      default: false
+    },
+    suspiciousReason: {
+      type: String,
+      default: null
+    },
+    suspiciousAt: {
+      type: Date,
+      default: null
+    }
+  },
   createdAt: {
     type: Date,
     default: Date.now

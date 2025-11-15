@@ -10,6 +10,8 @@ import { Databases } from './pages/Databases';
 import { DatabaseDetail } from './pages/DatabaseDetail';
 import { Login } from './pages/Auth/Login';
 import { Register } from './pages/Auth/Register';
+import { ModernLogin } from './pages/Auth/ModernLogin';
+import { ModernRegister } from './pages/Auth/ModernRegister';
 import { VerifyEmail } from './pages/Auth/VerifyEmail';
 import { ForgotPassword } from './pages/Auth/ForgotPassword';
 import { ResetPassword } from './pages/Auth/ResetPassword';
@@ -34,6 +36,7 @@ import { LotteryManagement } from './pages/Admin/LotteryManagement';
 import { LotteryStatistics } from './pages/Admin/LotteryStatistics';
 import { NotificationManagement } from './pages/Admin/NotificationManagement';
 import { SiteConfig } from './pages/Admin/SiteConfig';
+import { AuthPageConfig } from './pages/Admin/AuthPageConfig';
 import { DatabaseManagement } from './pages/Admin/DatabaseManagement';
 import { TicketManagement } from './pages/Admin/TicketManagement';
 import { RechargeConfig } from './pages/Admin/RechargeConfig';
@@ -103,7 +106,7 @@ function App() {
             path="/login" 
             element={
               <PublicRoute>
-                <Login />
+                <ModernLogin />
               </PublicRoute>
             } 
           />
@@ -111,14 +114,14 @@ function App() {
             path="/register" 
             element={
               <PublicRoute>
-                <Register />
+                <ModernRegister />
               </PublicRoute>
             } 
           />
-          <Route path="/join/:referralCode" element={<Register />} />
-          <Route path="/invite/:referralCode" element={<Register />} />
-          <Route path="/welcome/:referralCode" element={<Register />} />
-          <Route path="/start/:referralCode" element={<Register />} />
+          <Route path="/join/:referralCode" element={<ModernRegister />} />
+          <Route path="/invite/:referralCode" element={<ModernRegister />} />
+          <Route path="/welcome/:referralCode" element={<ModernRegister />} />
+          <Route path="/start/:referralCode" element={<ModernRegister />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -358,6 +361,14 @@ function App() {
             element={
               <AdminRoute>
                 <SiteConfig />
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/auth-page-config" 
+            element={
+              <AdminRoute>
+                <AuthPageConfig />
               </AdminRoute>
             } 
           />
