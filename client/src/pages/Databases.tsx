@@ -171,11 +171,13 @@ export const Databases: React.FC = () => {
                 })()}
               </div>
 
-              {/* 描述 - 保留换行 */}
+              {/* 描述 - 限制2行显示 */}
               <div 
-                className="text-gray-600 text-sm mb-4" 
-                dangerouslySetInnerHTML={{ __html: formatTextWithLineBreaks(db.description || '') }}
-              />
+                className="text-gray-600 text-sm mb-4 line-clamp-2" 
+                title={db.description || ''}
+              >
+                {db.description || ''}
+              </div>
 
               {/* 详细信息 */}
               <div className="space-y-2 mb-4 flex-1">
