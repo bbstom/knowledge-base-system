@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Bell } from 'lucide-react';
 import { notificationApi } from '../utils/adminApi';
+import { useUser } from '../hooks/useUser';
 import toast from 'react-hot-toast';
 
 // 添加弹入动画样式
@@ -45,12 +46,18 @@ interface Notification {
 }
 
 export const NotificationModal: React.FC = () => {
+  const { user } = useUser();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [hideToday, setHideToday] = useState(false);
 
   useEffect(() => {
+    // 只有在用户已登录时才加载通知
+    if (!user) {
+      return;
+    }
+
     // 检查今日是否已隐藏
     const today = new Date().toDateString();
     const hiddenDate = localStorage.getItem('notification_hidden_date');
@@ -61,7 +68,7 @@ export const NotificationModal: React.FC = () => {
     }
     
     loadNotifications();
-  }, []);
+  }, [user]);
 
   const loadNotifications = async () => {
     try {
