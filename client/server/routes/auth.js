@@ -204,6 +204,9 @@ router.post('/register', rateLimitMiddleware('register'), async (req, res) => {
         referrer.referralStats.validReferrals += 1;
         referrer.referralStats.totalEarnings += referralReward;
         
+        // 更新推荐用户计数
+        referrer.referralCount = (referrer.referralCount || 0) + 1;
+        
         await referrer.save();
         
         // 创建推荐奖励积分记录
