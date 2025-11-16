@@ -1,0 +1,17 @@
+# 图片存储目录
+
+将图片文件放在这个目录中，可以通过以下URL访问：
+
+http://localhost:3001/images/your-image.jpg
+
+## 支持的图片格式
+- JPG/JPEG
+- PNG
+- GIF
+- WebP
+- SVG
+
+## 使用示例
+1. 将图片文件复制到此目录
+2. 在配置中使用相对路径：`/images/login-bg.jpg`
+3. 或使用完整URL：`http://your-domain.com/images/login-bg.jpg`

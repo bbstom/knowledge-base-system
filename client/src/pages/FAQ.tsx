@@ -41,7 +41,7 @@ export const FAQ: React.FC = () => {
     { value: 'account', label: '账户相关' },
     { value: 'search', label: '搜索功能' },
     { value: 'payment', label: '充值提现' },
-    { value: 'referral', label: '推荐奖励' },
+    { value: 'referral', label: '推广赚钱' },
     { value: 'vip', label: 'VIP会员' }
   ];
 

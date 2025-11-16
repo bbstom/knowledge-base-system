@@ -226,7 +226,7 @@ export const Dashboard: React.FC = () => {
           >
             <Users className="h-8 w-8 text-purple-600 mx-auto mb-2" />
             <h3 className="font-semibold text-gray-900">邀请好友</h3>
-            <p className="text-sm text-gray-600">获得推荐奖励</p>
+            <p className="text-sm text-gray-600">推广赚钱</p>
           </button>
           
           <button 

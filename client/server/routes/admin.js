@@ -716,11 +716,11 @@ router.get('/users/:userId', authMiddleware, adminMiddleware, async (req, res) =
 
     const searchRecordsFormatted = searchRecords.map(record => ({
       id: record._id.toString(),
-      type: record.type || 'unknown',
-      query: record.query || '',
-      database: record.database || '未知',
-      cost: record.cost || 0,
-      status: record.resultCount > 0 ? 'success' : 'failed',
+      type: record.searchType || 'unknown',
+      query: record.searchQuery || '',
+      database: `${record.databasesSearched || 0}个数据库`,
+      cost: record.pointsCharged || 0,
+      status: record.resultsCount > 0 ? 'success' : 'failed',
       createdAt: record.createdAt
     }));
 

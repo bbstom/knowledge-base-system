@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片访问测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        .test-section h2 {
+            color: #4CAF50;
+            margin-top: 0;
+        }
+        .image-test {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .image-test img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #4CAF50;
+            color: white;
+        }
+        .status.error {
+            background: #f44336;
+            color: white;
+        }
+        .url-box {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            margin-top: 0;
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📸 图片访问测试页面</h1>
+        
+        <div class="instructions">
+            <h3>📝 使用说明</h3>
+            <ol>
+                <li>确保服务器正在运行（npm start）</li>
+                <li>将测试图片放到 <code>server/public/images/</code> 目录</li>
+                <li>刷新此页面查看图片是否正常显示</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>测试1：基本图片访问</h2>
+            <p>测试图片URL: <code>http://localhost:3001/images/test.jpg</code></p>
+            
+            <div class="image-test">
+                <h3>测试图片 <span class="status" id="status1">等待加载...</span></h3>
+                <div class="url-box">http://localhost:3001/images/test.jpg</div>
+                <img 
+                    id="test1" 
+                    src="http://localhost:3001/images/test.jpg" 
+                    alt="测试图片1"
+                    onload="updateStatus('status1', true)"
+                    onerror="updateStatus('status1', false)"
+                >
+                <p id="message1"></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试2：登录背景图</h2>
+            <p>测试图片URL: <code>http://localhost:3001/images/login-bg.jpg</code></p>
+            
+            <div class="image-test">
+                <h3>登录背景图 <span class="status" id="status2">等待加载...</span></h3>
+                <div class="url-box">http://localhost:3001/images/login-bg.jpg</div>
+                <img 
+                    id="test2" 
+                    src="http://localhost:3001/images/login-bg.jpg" 
+                    alt="登录背景图"
+                    onload="updateStatus('status2', true)"
+                    onerror="updateStatus('status2', false)"
+                >
+                <p id="message2"></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试3：轮播图</h2>
+            <p>测试图片URL: <code>http://localhost:3001/images/banner-1.jpg</code></p>
+            
+            <div class="image-test">
+                <h3>轮播图1 <span class="status" id="status3">等待加载...</span></h3>
+                <div class="url-box">http://localhost:3001/images/banner-1.jpg</div>
+                <img 
+                    id="test3" 
+                    src="http://localhost:3001/images/banner-1.jpg" 
+                    alt="轮播图1"
+                    onload="updateStatus('status3', true)"
+                    onerror="updateStatus('status3', false)"
+                >
+                <p id="message3"></p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>测试4：子目录访问</h2>
+            <p>测试图片URL: <code>http://localhost:3001/images/auth/login-bg.jpg</code></p>
+            
+            <div class="image-test">
+                <h3>子目录图片 <span class="status" id="status4">等待加载...</span></h3>
+                <div class="url-box">http://localhost:3001/images/auth/login-bg.jpg</div>
+                <img 
+                    id="test4" 
+                    src="http://localhost:3001/images/auth/login-bg.jpg" 
+                    alt="子目录图片"
+                    onload="updateStatus('status4', true)"
+                    onerror="updateStatus('status4', false)"
+                >
+                <p id="message4"></p>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>✅ 如果图片无法显示</h3>
+            <ol>
+                <li>检查服务器是否正在运行</li>
+                <li>检查图片文件是否存在于 <code>server/public/images/</code></li>
+                <li>检查文件名是否正确（区分大小写）</li>
+                <li>查看浏览器控制台的错误信息</li>
+                <li>查看服务器日志</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function updateStatus(statusId, success) {
+            const statusEl = document.getElementById(statusId);
+            const messageId = statusId.replace('status', 'message');
+            const messageEl = document.getElementById(messageId);
+            
+            if (success) {
+                statusEl.textContent = '✓ 加载成功';
+                statusEl.className = 'status success';
+                messageEl.textContent = '✅ 图片加载成功！可以在配置中使用此URL。';
+                messageEl.style.color = '#4CAF50';
+            } else {
+                statusEl.textContent = '✗ 加载失败';
+                statusEl.className = 'status error';
+                messageEl.textContent = '❌ 图片加载失败。请检查文件是否存在，或查看控制台错误信息。';
+                messageEl.style.color = '#f44336';
+            }
+        }
+
+        // 页面加载完成后的提示
+        window.addEventListener('load', function() {
+            console.log('📸 图片访问测试页面已加载');
+            console.log('💡 提示：打开浏览器控制台查看详细信息');
+        });
+    </script>
+</body>
+</html>

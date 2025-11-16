@@ -33,7 +33,7 @@ export const Home: React.FC = () => {
     },
     {
       icon: Users,
-      title: '推荐奖励',
+      title: '推广赚钱',
       description: '邀请好友注册使用，获得丰厚佣金奖励',
       gradient: 'from-indigo-500 to-purple-500'
     },

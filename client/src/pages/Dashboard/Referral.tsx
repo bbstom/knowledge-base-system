@@ -107,7 +107,7 @@ export const Referral: React.FC = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            推荐奖励
+            推广赚钱
           </h1>
           <p className="text-gray-600">
             邀请好友注册使用，获得丰厚佣金奖励
@@ -274,7 +274,7 @@ export const Referral: React.FC = () => {
         {/* How it works */}
         <div className="card mt-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            推荐奖励规则
+            推广赚钱规则
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">

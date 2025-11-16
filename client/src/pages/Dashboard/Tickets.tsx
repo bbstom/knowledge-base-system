@@ -461,8 +461,9 @@ export const Tickets: React.FC = () => {
 
         {/* 新建工单模态框 */}
         {showNewTicket && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <div className="pointer-events-auto max-w-2xl w-full">
+            <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto border border-gray-200">
               <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-xl">
                 <h2 className="text-2xl font-bold text-gray-900">新建工单</h2>
               </div>
@@ -544,6 +545,7 @@ export const Tickets: React.FC = () => {
                   提交工单
                 </button>
               </div>
+            </div>
             </div>
           </div>
         )}

@@ -16,7 +16,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: '订单中心', href: '/dashboard/orders', icon: Receipt },
     { name: '搜索历史', href: '/dashboard/history', icon: Database },
     { name: '充值中心', href: '/dashboard/recharge-center', icon: Wallet },
-    { name: '推荐奖励', href: '/dashboard/referral', icon: Users },
+    { name: '推广赚钱', href: '/dashboard/referral', icon: Users },
     { name: '佣金管理', href: '/dashboard/commission', icon: CreditCard },
     { name: '积分中心', href: '/dashboard/points', icon: BarChart3 },
     { name: '在线工单', href: '/dashboard/tickets', icon: MessageSquare },

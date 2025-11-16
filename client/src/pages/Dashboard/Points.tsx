@@ -122,7 +122,7 @@ export const Points: React.FC = () => {
       case 'recharge':
         return '充值获得';
       case 'referral':
-        return '推荐奖励';
+        return '推广赚钱';
       case 'purchase':
         return '消费奖励';
       case 'bonus':

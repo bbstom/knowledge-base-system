@@ -504,7 +504,7 @@ export const ContentManagement: React.FC = () => {
             <option value="account">账户相关</option>
             <option value="search">搜索功能</option>
             <option value="payment">充值提现</option>
-            <option value="referral">推荐奖励</option>
+            <option value="referral">推广赚钱</option>
             <option value="vip">VIP会员</option>
           </select>
         </div>

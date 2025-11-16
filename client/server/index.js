@@ -49,6 +49,11 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 静态文件服务 - 提供图片访问
+const path = require('path');
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+console.log('📁 静态图片目录:', path.join(__dirname, 'public/images'));
+
 // 请求日志
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
@@ -108,7 +113,6 @@ app.use('/api/databases', databaseRoutes);
 app.use('/api/lottery', lotteryRoutes);
 
 // 静态文件服务 - 提供前端构建文件
-const path = require('path');
 const distPath = path.join(__dirname, '..', 'dist');
 
 // 检查是否存在构建文件
