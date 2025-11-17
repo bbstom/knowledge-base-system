@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '../../components/Layout/Layout';
 import { 
   Coins, Crown, Check, Zap, Shield, Star, 
-  Sparkles, CreditCard, Key, XCircle
+  Sparkles, CreditCard, Key, XCircle, ExternalLink
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -37,6 +37,7 @@ export const RechargeCenter: React.FC = () => {
   const [cardCode, setCardCode] = useState('');
   const [redeeming, setRedeeming] = useState(false);
   const [cardInfo, setCardInfo] = useState<any>(null);
+  const [rechargeCardConfig, setRechargeCardConfig] = useState<any>(null);
   const [showResultModal, setShowResultModal] = useState(false);
   const [resultInfo, setResultInfo] = useState<{
     success: boolean;
@@ -47,6 +48,7 @@ export const RechargeCenter: React.FC = () => {
 
   useEffect(() => {
     loadPackages();
+    loadRechargeCardConfig();
     
     // 检查URL参数
     const searchParams = new URLSearchParams(location.search);
@@ -57,6 +59,18 @@ export const RechargeCenter: React.FC = () => {
       setActiveTab('card');
     }
   }, [location]);
+
+  const loadRechargeCardConfig = async () => {
+    try {
+      const response = await fetch('/api/system-config/recharge-card');
+      const data = await response.json();
+      if (data.success && data.data) {
+        setRechargeCardConfig(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to load recharge card config:', error);
+    }
+  };
 
   const loadPackages = async () => {
     try {
@@ -522,6 +536,31 @@ export const RechargeCenter: React.FC = () => {
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">卡密充值</h2>
                 <p className="text-gray-600 text-sm">输入您的充值卡密，立即到账</p>
               </div>
+
+              {/* 获取充值卡按钮 */}
+              {rechargeCardConfig?.purchaseUrl && (
+                <div className="mb-6 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-purple-900 mb-1">
+                        还没有充值卡？
+                      </h3>
+                      <p className="text-xs text-purple-700">
+                        点击按钮前往购买充值卡密
+                      </p>
+                    </div>
+                    <a
+                      href={rechargeCardConfig.purchaseUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-4 inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      立即获取充值卡
+                    </a>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-4">
                 <div>

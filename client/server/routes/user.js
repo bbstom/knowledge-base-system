@@ -379,7 +379,7 @@ router.get('/commissions', authMiddleware, async (req, res) => {
     // 从BalanceLog中获取佣金相关的记录
     const commissions = await BalanceLog.find({ 
       userId: req.user._id,
-      type: { $in: ['commission', 'commission_to_balance', 'commission_withdraw', 'withdraw'] }
+      type: { $in: ['commission', 'commission_to_balance', 'commission_withdraw', 'withdraw', 'commission_refund', 'refund'] }
     })
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
@@ -388,7 +388,7 @@ router.get('/commissions', authMiddleware, async (req, res) => {
     
     const total = await BalanceLog.countDocuments({ 
       userId: req.user._id,
-      type: { $in: ['commission', 'commission_to_balance', 'commission_withdraw', 'withdraw'] }
+      type: { $in: ['commission', 'commission_to_balance', 'commission_withdraw', 'withdraw', 'commission_refund', 'refund'] }
     });
     
     // 计算总佣金收入（commission）

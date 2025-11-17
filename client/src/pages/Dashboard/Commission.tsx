@@ -359,6 +359,7 @@ export const Commission: React.FC = () => {
                             const type = record.type;
                             
                             // 根据type字段判断
+                            if (type === 'commission_refund' || type === 'refund') return '提现拒绝退还';
                             if (type === 'commission_to_balance') return '提现到余额';
                             if (type === 'commission_withdraw') return '提现到USDT钱包';
                             if (type === 'withdraw' && record.amount < 0) return '佣金提现';
