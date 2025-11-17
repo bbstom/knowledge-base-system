@@ -9,7 +9,7 @@ import { notificationApi } from '../../utils/adminApi';
 import toast from 'react-hot-toast';
 
 interface Notification {
-  id: string;
+  _id: string;
   title: string;
   content: string;
   type: 'text' | 'image' | 'html';
@@ -19,6 +19,7 @@ interface Notification {
   endDate: string;
   targetUsers: 'all' | 'vip' | 'normal' | 'new' | 'active';
   priority: 'low' | 'normal' | 'medium' | 'high' | 'urgent';
+  showTiming: 'before_login' | 'after_login';
   viewCount: number;
   createdAt: string;
 }
@@ -40,7 +41,8 @@ export const NotificationManagement: React.FC = () => {
     startDate: new Date().toISOString().split('T')[0],
     endDate: '',
     targetUsers: 'all' as 'all' | 'vip' | 'normal' | 'new' | 'active',
-    priority: 'normal' as 'low' | 'normal' | 'medium' | 'high' | 'urgent'
+    priority: 'normal' as 'low' | 'normal' | 'medium' | 'high' | 'urgent',
+    showTiming: 'after_login' as 'before_login' | 'after_login'
   });
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export const NotificationManagement: React.FC = () => {
     try {
       if (editingNotification) {
         // 更新
-        const response = await notificationApi.update(editingNotification.id, formData);
+        const response = await notificationApi.update(editingNotification._id, formData);
         if (response.success) {
           toast.success('通知已更新');
           await loadNotifications();
@@ -107,6 +109,17 @@ export const NotificationManagement: React.FC = () => {
     }
   };
 
+  // 转换日期格式为 YYYY-MM-DD
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      return '';
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -117,7 +130,8 @@ export const NotificationManagement: React.FC = () => {
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
       targetUsers: 'all',
-      priority: 'medium'
+      priority: 'medium',
+      showTiming: 'after_login'
     });
     setEditingNotification(null);
     setShowModal(false);
@@ -132,18 +146,19 @@ export const NotificationManagement: React.FC = () => {
       type: notification.type,
       imageUrl: notification.imageUrl || '',
       status: notification.status,
-      startDate: notification.startDate,
-      endDate: notification.endDate,
+      startDate: formatDate(notification.startDate),
+      endDate: formatDate(notification.endDate),
       targetUsers: notification.targetUsers,
-      priority: notification.priority
+      priority: notification.priority,
+      showTiming: notification.showTiming || 'after_login'
     });
     setShowModal(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (_id: string) => {
     if (window.confirm('确定要删除这条通知吗？')) {
       try {
-        const response = await notificationApi.delete(id);
+        const response = await notificationApi.delete(_id);
         if (response.success) {
           toast.success('通知已删除');
           await loadNotifications();
@@ -165,10 +180,11 @@ export const NotificationManagement: React.FC = () => {
       type: notification.type,
       imageUrl: notification.imageUrl || '',
       status: notification.status,
-      startDate: notification.startDate,
-      endDate: notification.endDate,
+      startDate: formatDate(notification.startDate),
+      endDate: formatDate(notification.endDate),
       targetUsers: notification.targetUsers,
-      priority: notification.priority
+      priority: notification.priority,
+      showTiming: notification.showTiming || 'after_login'
     });
     setPreviewMode(true);
     setShowModal(true);
@@ -344,7 +360,7 @@ export const NotificationManagement: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {notifications.map((notification) => (
-                  <tr key={notification.id}>
+                  <tr key={notification._id}>
                     <td className="px-6 py-4">
                       <div className="text-sm font-medium text-gray-900">{notification.title}</div>
                     </td>
@@ -391,7 +407,7 @@ export const NotificationManagement: React.FC = () => {
                           <Edit2 className="h-5 w-5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(notification.id)}
+                          onClick={() => handleDelete(notification._id)}
                           className="text-red-600 hover:text-red-800"
                           title="删除"
                         >
@@ -407,10 +423,10 @@ export const NotificationManagement: React.FC = () => {
           )}
         </div>
 
-        {/* Modal */}
+        {/* Modal - 无遮罩 */}
         {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto pointer-events-auto border-2 border-gray-200">
               <div className="p-6">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">
                   {previewMode ? '预览通知' : editingNotification ? '编辑通知' : '创建通知'}
@@ -495,6 +511,25 @@ export const NotificationManagement: React.FC = () => {
                           <option value="high">重要</option>
                           <option value="urgent">紧急</option>
                         </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          显示时机 *
+                        </label>
+                        <select
+                          value={formData.showTiming}
+                          onChange={(e) => setFormData({ ...formData, showTiming: e.target.value as any })}
+                          className="input-field"
+                        >
+                          <option value="after_login">用户登录后</option>
+                          <option value="before_login">用户登录前</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formData.showTiming === 'after_login' 
+                            ? '通知将在用户登录后显示' 
+                            : '通知将在登录页面显示'}
+                        </p>
                       </div>
 
                       <div>

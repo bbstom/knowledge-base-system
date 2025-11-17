@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>测试登录前通知</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 3px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      background: #f9f9f9;
+      border-radius: 5px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button.secondary {
+      background: #2196F3;
+    }
+    button.secondary:hover {
+      background: #0b7dda;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 4px solid #4CAF50;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .error {
+      background: #ffebee;
+      border-left-color: #f44336;
+    }
+    .info {
+      background: #e3f2fd;
+      border-left-color: #2196F3;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔔 测试登录前通知功能</h1>
+    
+    <div class="section">
+      <h2>1. 获取公开通知（登录前）</h2>
+      <p>测试 <code>GET /api/notifications/public</code> 端点</p>
+      <button onclick="getPublicNotifications()">获取公开通知</button>
+      <div id="publicResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>2. 创建登录前通知（需要管理员权限）</h2>
+      <form onsubmit="createNotification(event)">
+        <label>标题:</label>
+        <input type="text" id="title" value="欢迎使用我们的系统" required>
+        
+        <label>内容:</label>
+        <textarea id="content" rows="4" required>感谢您选择我们的服务！我们致力于为您提供最优质的体验。</textarea>
+        
+        <label>显示时机:</label>
+        <select id="showTiming">
+          <option value="before_login">登录前显示</option>
+          <option value="after_login">登录后显示</option>
+        </select>
+        
+        <label>优先级:</label>
+        <select id="priority">
+          <option value="low">低</option>
+          <option value="normal">一般</option>
+          <option value="medium">中</option>
+          <option value="high">重要</option>
+          <option value="urgent">紧急</option>
+        </select>
+        
+        <label>状态:</label>
+        <select id="status">
+          <option value="draft">草稿</option>
+          <option value="active">生效中</option>
+          <option value="expired">已过期</option>
+        </select>
+        
+        <label>目标用户:</label>
+        <select id="targetUsers">
+          <option value="all">所有用户</option>
+          <option value="vip">VIP用户</option>
+          <option value="normal">普通用户</option>
+        </select>
+        
+        <br><br>
+        <button type="submit">创建通知</button>
+      </form>
+      <div id="createResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>3. 获取所有通知（需要管理员权限）</h2>
+      <button onclick="getAllNotifications()">获取所有通知</button>
+      <div id="allResult"></div>
+    </div>
+
+    <div class="section">
+      <h2>4. 测试说明</h2>
+      <ul>
+        <li>✅ 公开通知API不需要登录即可访问</li>
+        <li>✅ 只返回 <code>showTiming: 'before_login'</code> 且 <code>status: 'active'</code> 的通知</li>
+        <li>⚠️ 创建通知需要管理员权限（需要先登录管理员账号）</li>
+        <li>📝 创建通知后，刷新登录页面应该能看到通知弹窗</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    function getToken() {
+      return document.cookie.split('token=')[1]?.split(';')[0] || '';
+    }
+
+    async function getPublicNotifications() {
+      const resultDiv = document.getElementById('publicResult');
+      resultDiv.innerHTML = '<div class="result info">正在加载...</div>';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/notifications/public`);
+        const data = await response.json();
+        
+        console.log('公开通知响应:', data);
+        
+        if (data.success) {
+          const notifications = data.data || [];
+          resultDiv.innerHTML = `
+            <div class="result">
+              <strong>✅ 成功获取 ${notifications.length} 条通知</strong><br><br>
+              ${notifications.length > 0 ? 
+                notifications.map((n, i) => `
+                  <strong>通知 ${i + 1}:</strong><br>
+                  - 标题: ${n.title}<br>
+                  - 内容: ${n.content}<br>
+                  - 显示时机: ${n.showTiming}<br>
+                  - 优先级: ${n.priority}<br>
+                  - 状态: ${n.status}<br>
+                  - 开始日期: ${n.startDate}<br>
+                  - 结束日期: ${n.endDate || '永久'}<br>
+                  <br>
+                `).join('') 
+                : '暂无登录前通知'
+              }
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `<div class="result error">❌ ${data.message}</div>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 请求失败: ${error.message}</div>`;
+        console.error('获取公开通知失败:', error);
+      }
+    }
+
+    async function createNotification(event) {
+      event.preventDefault();
+      
+      const resultDiv = document.getElementById('createResult');
+      resultDiv.innerHTML = '<div class="result info">正在创建...</div>';
+      
+      const token = getToken();
+      if (!token) {
+        resultDiv.innerHTML = '<div class="result error">❌ 未登录，请先登录管理员账号</div>';
+        return;
+      }
+      
+      const notificationData = {
+        title: document.getElementById('title').value,
+        content: document.getElementById('content').value,
+        type: 'text',
+        showTiming: document.getElementById('showTiming').value,
+        priority: document.getElementById('priority').value,
+        status: document.getElementById('status').value,
+        targetUsers: document.getElementById('targetUsers').value,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: ''
+      };
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/notifications`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include',
+          body: JSON.stringify(notificationData)
+        });
+        
+        const data = await response.json();
+        console.log('创建通知响应:', data);
+        
+        if (data.success) {
+          resultDiv.innerHTML = `
+            <div class="result">
+              <strong>✅ 通知创建成功！</strong><br><br>
+              通知ID: ${data.data._id}<br>
+              标题: ${data.data.title}<br>
+              显示时机: ${data.data.showTiming}<br>
+              状态: ${data.data.status}<br><br>
+              <strong>💡 提示:</strong> 刷新登录页面查看效果
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `<div class="result error">❌ ${data.message}</div>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 创建失败: ${error.message}</div>`;
+        console.error('创建通知失败:', error);
+      }
+    }
+
+    async function getAllNotifications() {
+      const resultDiv = document.getElementById('allResult');
+      resultDiv.innerHTML = '<div class="result info">正在加载...</div>';
+      
+      const token = getToken();
+      if (!token) {
+        resultDiv.innerHTML = '<div class="result error">❌ 未登录，请先登录管理员账号</div>';
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/notifications?limit=100`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        console.log('所有通知响应:', data);
+        
+        if (data.success) {
+          const notifications = data.data.notifications || [];
+          const beforeLogin = notifications.filter(n => n.showTiming === 'before_login');
+          const afterLogin = notifications.filter(n => n.showTiming === 'after_login' || !n.showTiming);
+          
+          resultDiv.innerHTML = `
+            <div class="result">
+              <strong>✅ 总通知数: ${notifications.length}</strong><br>
+              - 登录前显示: ${beforeLogin.length} 条<br>
+              - 登录后显示: ${afterLogin.length} 条<br><br>
+              
+              <strong>登录前通知列表:</strong><br>
+              ${beforeLogin.length > 0 ? 
+                beforeLogin.map((n, i) => `
+                  ${i + 1}. ${n.title} (${n.status}) - 优先级: ${n.priority}<br>
+                `).join('') 
+                : '暂无<br>'
+              }
+              <br>
+              <strong>登录后通知列表:</strong><br>
+              ${afterLogin.length > 0 ? 
+                afterLogin.map((n, i) => `
+                  ${i + 1}. ${n.title} (${n.status}) - 优先级: ${n.priority}<br>
+                `).join('') 
+                : '暂无<br>'
+              }
+            </div>
+          `;
+        } else {
+          resultDiv.innerHTML = `<div class="result error">❌ ${data.message}</div>`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result error">❌ 请求失败: ${error.message}</div>`;
+        console.error('获取所有通知失败:', error);
+      }
+    }
+
+    // 页面加载时自动测试公开API
+    window.onload = () => {
+      console.log('页面加载完成，自动测试公开通知API...');
+      getPublicNotifications();
+    };
+  </script>
+</body>
+</html>

@@ -39,6 +39,40 @@ const adminMiddleware = (req, res, next) => {
 };
 
 /**
+ * 获取公开通知（登录前）
+ * GET /api/notifications/public
+ */
+router.get('/public', async (req, res) => {
+  try {
+    const now = new Date();
+    
+    // 构建查询条件 - 只返回登录前显示的通知
+    const query = {
+      status: 'active',
+      showTiming: 'before_login',
+      startDate: { $lte: now },
+      $or: [
+        { endDate: { $gte: now } },
+        { endDate: null }
+      ]
+    };
+
+    const notifications = await Notification.find(query)
+      .sort({ priority: -1, createdAt: -1 })
+      .limit(10)
+      .select('-readBy -createdBy'); // 不返回敏感信息
+
+    res.json({
+      success: true,
+      data: notifications
+    });
+  } catch (error) {
+    console.error('Get public notifications error:', error);
+    res.status(500).json({ success: false, message: '获取通知失败' });
+  }
+});
+
+/**
  * 获取活动通知（用户）
  * GET /api/notifications/active
  */

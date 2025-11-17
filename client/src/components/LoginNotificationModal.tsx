@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { X, Bell } from 'lucide-react';
-import { notificationApi } from '../utils/adminApi';
-import { useUser } from '../hooks/useUser';
-import toast from 'react-hot-toast';
 
 // 添加弹入动画样式
 const style = document.createElement('style');
@@ -27,8 +24,8 @@ style.textContent = `
     animation: bounce-in 0.5s ease-out;
   }
 `;
-if (!document.head.querySelector('style[data-notification-modal]')) {
-  style.setAttribute('data-notification-modal', 'true');
+if (!document.head.querySelector('style[data-login-notification-modal]')) {
+  style.setAttribute('data-login-notification-modal', 'true');
   document.head.appendChild(style);
 }
 
@@ -42,25 +39,19 @@ interface Notification {
   startDate: string;
   endDate?: string;
   targetUsers: 'all' | 'vip' | 'normal';
-  readBy: Array<{ userId: string; readAt: string }>;
+  showTiming: 'before_login' | 'after_login';
 }
 
-export const NotificationModal: React.FC = () => {
-  const { user } = useUser();
+export const LoginNotificationModal: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [hideToday, setHideToday] = useState(false);
 
   useEffect(() => {
-    // 只有在用户已登录时才加载通知
-    if (!user) {
-      return;
-    }
-
     // 检查今日是否已隐藏
     const today = new Date().toDateString();
-    const hiddenDate = localStorage.getItem('notification_hidden_date');
+    const hiddenDate = localStorage.getItem('login_notification_hidden_date');
     
     if (hiddenDate === today) {
       // 今日已隐藏，不显示
@@ -68,65 +59,58 @@ export const NotificationModal: React.FC = () => {
     }
     
     loadNotifications();
-  }, [user]);
+  }, []);
 
   const loadNotifications = async () => {
     try {
-      console.log('NotificationModal: 开始加载通知...');
-      const response = await notificationApi.getActive();
-      console.log('NotificationModal: API响应 =', response);
+      console.log('LoginNotificationModal: 开始加载登录前通知...');
       
-      if (response.success && response.data && response.data.length > 0) {
-        console.log(`NotificationModal: 获取到 ${response.data.length} 条通知`);
-        // 只显示登录后的通知
-        const afterLoginNotifications = response.data.filter(
-          (n: any) => !n.showTiming || n.showTiming === 'after_login'
+      // 使用完整的API路径
+      const apiUrl = '/api/notifications/public';
+      console.log('LoginNotificationModal: 请求URL =', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      console.log('LoginNotificationModal: 响应状态 =', response.status);
+      
+      const result = await response.json();
+      console.log('LoginNotificationModal: API响应 =', result);
+      console.log('LoginNotificationModal: 通知数据 =', result.data);
+      
+      if (result.success && result.data && result.data.length > 0) {
+        console.log(`LoginNotificationModal: 获取到 ${result.data.length} 条通知`);
+        
+        // 显示所有通知的 showTiming 字段
+        result.data.forEach((n: Notification, index: number) => {
+          console.log(`LoginNotificationModal: 通知${index + 1} - showTiming:`, n.showTiming, 'title:', n.title);
+        });
+        
+        // 只显示登录前的通知
+        const beforeLoginNotifications = result.data.filter(
+          (n: Notification) => n.showTiming === 'before_login'
         );
-        if (afterLoginNotifications.length > 0) {
-          setNotifications(afterLoginNotifications);
+        
+        console.log(`LoginNotificationModal: 过滤后的登录前通知数量 = ${beforeLoginNotifications.length}`);
+        
+        if (beforeLoginNotifications.length > 0) {
+          setNotifications(beforeLoginNotifications);
           setIsOpen(true);
+          console.log('LoginNotificationModal: ✅ 显示通知弹窗');
         } else {
-          console.log('NotificationModal: 没有登录后显示的通知');
+          console.log('LoginNotificationModal: ⚠️ 没有登录前显示的通知');
         }
       } else {
-        console.log('NotificationModal: 没有活动通知');
+        console.log('LoginNotificationModal: ⚠️ 没有活动通知或API返回失败');
       }
     } catch (error) {
-      console.error('NotificationModal: 加载通知失败', error);
+      console.error('LoginNotificationModal: ❌ 加载通知失败', error);
     }
   };
 
-  const getUserId = () => {
-    // 从token中获取用户ID
-    const token = document.cookie.split('token=')[1]?.split(';')[0];
-    if (!token) {
-      console.log('NotificationModal: 未找到token');
-      return '';
-    }
-    
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log('NotificationModal: 用户ID =', payload.userId);
-      return payload.userId || '';
-    } catch (error) {
-      console.error('NotificationModal: 解析token失败', error);
-      return '';
-    }
-  };
-
-  const handleClose = async () => {
+  const handleClose = () => {
     // 如果勾选了"今日不再显示"
     if (hideToday) {
       const today = new Date().toDateString();
-      localStorage.setItem('notification_hidden_date', today);
-    }
-
-    if (notifications[currentIndex]) {
-      try {
-        await notificationApi.markAsRead(notifications[currentIndex]._id);
-      } catch (error) {
-        console.error('标记已读失败:', error);
-      }
+      localStorage.setItem('login_notification_hidden_date', today);
     }
 
     if (currentIndex < notifications.length - 1) {
@@ -136,20 +120,11 @@ export const NotificationModal: React.FC = () => {
     }
   };
 
-  const handleSkipAll = async () => {
+  const handleSkipAll = () => {
     // 如果勾选了"今日不再显示"
     if (hideToday) {
       const today = new Date().toDateString();
-      localStorage.setItem('notification_hidden_date', today);
-    }
-
-    try {
-      // 标记所有通知为已读
-      await Promise.all(
-        notifications.map(n => notificationApi.markAsRead(n._id))
-      );
-    } catch (error) {
-      console.error('标记已读失败:', error);
+      localStorage.setItem('login_notification_hidden_date', today);
     }
     setIsOpen(false);
   };
@@ -176,7 +151,7 @@ export const NotificationModal: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none overflow-y-auto">
       {/* 通知弹窗 */}
-      <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] my-auto border-2 border-orange-400 pointer-events-auto animate-bounce-in"
+      <div className="bg-white rounded-xl shadow-2xl max-h-[90vh] my-auto border-2 border-orange-400 animate-bounce-in pointer-events-auto"
            style={{ 
              width: 'fit-content',
              minWidth: '320px', 

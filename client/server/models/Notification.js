@@ -33,6 +33,11 @@ const notificationSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  showTiming: {
+    type: String,
+    enum: ['before_login', 'after_login'],
+    default: 'after_login'
+  },
   status: {
     type: String,
     enum: ['draft', 'active', 'expired', 'cancelled'],
