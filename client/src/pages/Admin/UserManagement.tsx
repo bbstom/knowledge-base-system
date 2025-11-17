@@ -435,13 +435,13 @@ export const UserManagement: React.FC = () => {
                     </div>
                     <div>
                       <span className="text-gray-600">佣金：</span>
-                      <span className="font-medium text-green-600">¥{user.commission}</span>
+                      <span className="font-medium text-green-600">¥{user.commission.toFixed(2)}</span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                     <div>推荐用户: {user.totalReferrals}人</div>
-                    <div>总佣金: ¥{user.totalCommission}</div>
+                    <div>总佣金: ¥{user.totalCommission.toFixed(2)}</div>
                     <div>搜索次数: {user.totalSearches}次</div>
                     <div>注册时间: {formatDate(user.createdAt)}</div>
                   </div>
@@ -651,7 +651,7 @@ export const UserManagement: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">佣金余额</label>
-                        <p className="font-medium text-green-600">¥{selectedUser.commission}</p>
+                        <p className="font-medium text-green-600">¥{selectedUser.commission.toFixed(2)}</p>
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">推荐码</label>
@@ -669,7 +669,7 @@ export const UserManagement: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">总佣金收入</label>
-                        <p className="font-medium">¥{selectedUser.totalCommission}</p>
+                        <p className="font-medium">¥{selectedUser.totalCommission.toFixed(2)}</p>
                       </div>
                       <div>
                         <label className="text-sm text-gray-600">搜索次数</label>
@@ -700,8 +700,8 @@ export const UserManagement: React.FC = () => {
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>邮箱: {ref.email}</div>
                           <div>注册时间: {formatDate(ref.createdAt)}</div>
-                          <div>总充值: ¥{ref.totalRecharge}</div>
-                          <div>产生佣金: ¥{ref.commission}</div>
+                          <div>总充值: ¥{ref.totalRecharge.toFixed(2)}</div>
+                          <div>产生佣金: ¥{ref.commission.toFixed(2)}</div>
                         </div>
                       </div>
                     ))}
@@ -749,7 +749,7 @@ export const UserManagement: React.FC = () => {
                             <p className="text-sm text-gray-500">{formatDate(record.createdAt)}</p>
                           </div>
                           <div className="text-lg font-bold text-green-600">
-                            +¥{record.amount}
+                            +¥{record.amount.toFixed(2)}
                           </div>
                         </div>
                       </div>
