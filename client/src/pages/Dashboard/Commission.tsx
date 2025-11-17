@@ -342,7 +342,7 @@ export const Commission: React.FC = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
@@ -419,7 +419,7 @@ export const Commission: React.FC = () => {
             提现记录
           </h3>
 
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
