@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Coins, Wallet, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { Layout } from '../../components/Layout/Layout';
 import { userApi, shopApi } from '../../utils/api';
+import { useUser } from '../../hooks/useUser';
 
 interface ExchangeRate {
   exchangeRate: number;
@@ -20,31 +21,28 @@ interface ExchangeLog {
 
 const ExchangePoints: React.FC = () => {
   const navigate = useNavigate();
+  const { user, refreshUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
-  const [user, setUser] = useState<any>(null);
   const [amount, setAmount] = useState<string>('');
   const [exchangeLogs, setExchangeLogs] = useState<ExchangeLog[]>([]);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     fetchData();
+    // 确保用户数据是最新的
+    refreshUser();
   }, []);
 
   const fetchData = async () => {
     try {
-      const [rateRes, profileRes, logsRes] = await Promise.all([
+      const [rateRes, logsRes] = await Promise.all([
         shopApi.getExchangeRate(),
-        userApi.getProfile(),
         userApi.getBalanceLogs(1, 10)
       ]);
 
       if (rateRes.success) {
         setExchangeRate(rateRes.data);
-      }
-
-      if (profileRes.success) {
-        setUser(profileRes.user);
       }
 
       if (logsRes.success) {
@@ -84,10 +82,17 @@ const ExchangePoints: React.FC = () => {
       const response = await userApi.exchangePoints(pointsAmount);
 
       if (response.success) {
+        // 先刷新数据
+        await Promise.all([
+          refreshUser(),
+          fetchData()
+        ]);
+        
+        // 给React一点时间更新状态
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         setMessage({ type: 'success', text: response.message || '兑换成功' });
         setAmount('');
-        // Refresh data
-        await fetchData();
       } else {
         setMessage({ type: 'error', text: response.message || '兑换失败' });
       }

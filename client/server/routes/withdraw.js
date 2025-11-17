@@ -543,7 +543,17 @@ router.post('/to-balance', authMiddleware, async (req, res) => {
       amount: { $lt: 0 } // 只查询负数（扣除）记录
     });
     
-    const totalWithdrawn = withdrawnLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+    // 计算退还金额（正数的退还记录）
+    const refundLogs = await BalanceLog.find({
+      userId,
+      type: { $in: ['refund', 'commission_refund'] },
+      currency: 'commission',
+      amount: { $gt: 0 }
+    });
+    
+    const totalWithdrawnAmount = withdrawnLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+    const totalRefundAmount = refundLogs.reduce((sum, log) => sum + log.amount, 0);
+    const totalWithdrawn = totalWithdrawnAmount - totalRefundAmount; // 实际已提现 = 提现总额 - 退还总额
     const availableCommission = totalCommission - totalWithdrawn;
 
     // 检查余额

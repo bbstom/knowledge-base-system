@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, Wallet, ArrowUpRight, Filter } from 'lucide-react';
 import { Layout } from '../../components/Layout/Layout';
 import { userApi, withdrawApi } from '../../utils/api';
+import { useUser } from '../../hooks/useUser';
 import { t } from '../../utils/i18n';
 import toast from 'react-hot-toast';
 
 export const Commission: React.FC = () => {
+  const { refreshUser } = useUser();
   const [commissionData, setCommissionData] = useState<{
     totalCommission: number;
     availableCommission: number;
@@ -184,15 +186,20 @@ export const Commission: React.FC = () => {
       }
       
       if (response?.success) {
+        // 刷新佣金数据
+        await loadCommissionData();
+        
+        // 如果是提现到余额，需要刷新全局用户数据
         if (withdrawType === 'balance') {
+          await refreshUser();
           toast.success('提现成功！已转入余额账户');
         } else {
           toast.success('提现申请已提交，请等待审核');
         }
+        
         setShowWithdrawModal(false);
         setWithdrawAmount('');
         setWalletAddress('');
-        loadCommissionData();
       } else {
         toast.error(response?.message || '提现失败');
       }
