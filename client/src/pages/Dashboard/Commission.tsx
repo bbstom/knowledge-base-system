@@ -27,6 +27,7 @@ export const Commission: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [withdrawing, setWithdrawing] = useState(false);
   const [filter, setFilter] = useState('all'); // all, income, withdraw
+  const [showMinAmountModal, setShowMinAmountModal] = useState(false);
   const [systemConfig, setSystemConfig] = useState<{
     minWithdrawAmountBalance: number;
     minWithdrawAmountUsdt: number;
@@ -84,8 +85,29 @@ export const Commission: React.FC = () => {
         // 从提现订单中计算待结算
         const withdrawOrders = Array.isArray(withdrawData.withdrawals) ? withdrawData.withdrawals : [];
         
+        // 从佣金记录中提取提现到余额的记录
+        const commissions = Array.isArray(data.commissions) ? data.commissions : [];
+        const balanceWithdraws = commissions
+          .filter((record: any) => record.type === 'commission_to_balance')
+          .map((record: any) => ({
+            _id: record._id,
+            orderNo: '即时到账',
+            type: 'balance',
+            amount: Math.abs(record.amount),
+            fee: 0,
+            actualAmount: Math.abs(record.amount),
+            walletAddress: 'balance',
+            status: 'completed',
+            createdAt: record.createdAt
+          }));
+        
+        // 合并提现记录：USDT提现订单 + 余额提现记录
+        const allWithdraws = [...withdrawOrders, ...balanceWithdraws].sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        
         // 保存提现记录
-        setWithdrawHistory(withdrawOrders);
+        setWithdrawHistory(allWithdraws);
         
         // 待结算：pending和processing状态的提现订单
         const pendingAmount = withdrawOrders
@@ -97,7 +119,7 @@ export const Commission: React.FC = () => {
           availableCommission: availableCommission,
           pendingCommission: pendingAmount,
           totalWithdrawn: totalWithdrawn,
-          commissionHistory: Array.isArray(data.commissions) ? data.commissions : []
+          commissionHistory: commissions
         });
       }
     } catch (error) {
@@ -273,8 +295,14 @@ export const Commission: React.FC = () => {
         {/* Withdraw Button */}
         <div className="mb-6">
           <button
-            onClick={() => setShowWithdrawModal(true)}
-            disabled={commissionData.availableCommission < systemConfig.minWithdrawAmountBalance}
+            onClick={() => {
+              // 检查是否满足最低提现金额
+              if (commissionData.availableCommission < systemConfig.minWithdrawAmountBalance) {
+                setShowMinAmountModal(true);
+              } else {
+                setShowWithdrawModal(true);
+              }
+            }}
             className="btn-primary flex items-center"
           >
             <Wallet className="h-5 w-5 mr-2" />
@@ -323,8 +351,28 @@ export const Commission: React.FC = () => {
                   filteredHistory.map((record: any, index) => (
                     <tr key={record._id || index} className="border-b border-gray-100">
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {record.description || '佣金收入'}
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          record.amount < 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {(() => {
+                            const desc = record.description || '佣金收入';
+                            const type = record.type;
+                            
+                            // 根据type字段判断
+                            if (type === 'commission_to_balance') return '提现到余额';
+                            if (type === 'commission_withdraw') return '提现到USDT钱包';
+                            if (type === 'withdraw' && record.amount < 0) return '佣金提现';
+                            
+                            // 提取推荐级别信息，去除充值金额部分
+                            if (desc.includes('1级推荐')) return '1级推荐佣金';
+                            if (desc.includes('2级推荐')) return '2级推荐佣金';
+                            if (desc.includes('3级推荐')) return '3级推荐佣金';
+                            
+                            // 其他提现相关
+                            if (desc.includes('提现')) return '佣金提现';
+                            
+                            return '佣金收入';
+                          })()}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-gray-900">
@@ -367,7 +415,7 @@ export const Commission: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">订单号</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600">提现方式/地址</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">金额</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">手续费</th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">实际到账</th>
@@ -379,8 +427,22 @@ export const Commission: React.FC = () => {
                 {withdrawHistory.length > 0 ? (
                   withdrawHistory.map((record: any) => (
                     <tr key={record._id} className="border-b border-gray-100">
-                      <td className="py-3 px-4 text-sm text-gray-900 font-mono">
-                        {record.orderNo}
+                      <td className="py-3 px-4">
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-gray-900">
+                            {record.walletAddress === 'balance' ? '余额账户' : 'USDT钱包'}
+                          </div>
+                          {record.walletAddress !== 'balance' && record.walletAddress && (
+                            <div className="text-xs text-gray-500 font-mono break-all">
+                              {record.walletAddress}
+                            </div>
+                          )}
+                          {record.walletAddress === 'balance' && (
+                            <div className="text-xs text-gray-500">
+                              即时到账
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-medium text-gray-900">
@@ -447,10 +509,62 @@ export const Commission: React.FC = () => {
           )}
         </div>
 
+        {/* Minimum Amount Warning Modal */}
+        {showMinAmountModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-yellow-400 pointer-events-auto">
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
+                  <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  佣金余额不足
+                </h3>
+                <div className="text-sm text-gray-600 space-y-2 mb-6">
+                  <p>您当前的可提现佣金为：</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    ${commissionData.availableCommission.toFixed(2)}
+                  </p>
+                  <div className="mt-4 bg-gray-50 rounded-lg p-4 text-left">
+                    <p className="font-medium text-gray-900 mb-2">最低提现金额要求：</p>
+                    <ul className="space-y-1">
+                      <li className="flex items-center justify-between">
+                        <span>提现到余额账户：</span>
+                        <span className="font-semibold text-gray-900">
+                          ${systemConfig.minWithdrawAmountBalance.toFixed(2)}
+                        </span>
+                      </li>
+                      <li className="flex items-center justify-between">
+                        <span>提现到USDT钱包：</span>
+                        <span className="font-semibold text-gray-900">
+                          ${systemConfig.minWithdrawAmountUsdt.toFixed(2)}
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="mt-4 text-gray-500">
+                    还需要 <span className="font-semibold text-red-600">
+                      ${(systemConfig.minWithdrawAmountBalance - commissionData.availableCommission).toFixed(2)}
+                    </span> 才能提现到余额账户
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowMinAmountModal(false)}
+                  className="btn-primary w-full"
+                >
+                  我知道了
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Withdraw Modal */}
         {showWithdrawModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 shadow-2xl border-2 border-purple-500 pointer-events-auto">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 申请提现
               </h3>
@@ -467,12 +581,12 @@ export const Commission: React.FC = () => {
                       onClick={() => setWithdrawType('balance')}
                       className={`p-4 border-2 rounded-lg transition-all ${
                         withdrawType === 'balance'
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-purple-500 bg-purple-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <Wallet className={`w-6 h-6 mx-auto mb-2 ${
-                        withdrawType === 'balance' ? 'text-blue-600' : 'text-gray-400'
+                        withdrawType === 'balance' ? 'text-purple-600' : 'text-gray-400'
                       }`} />
                       <div className="font-medium text-sm">余额账户</div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -485,12 +599,12 @@ export const Commission: React.FC = () => {
                       onClick={() => setWithdrawType('usdt')}
                       className={`p-4 border-2 rounded-lg transition-all ${
                         withdrawType === 'usdt'
-                          ? 'border-blue-500 bg-blue-50'
+                          ? 'border-purple-500 bg-purple-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <DollarSign className={`w-6 h-6 mx-auto mb-2 ${
-                        withdrawType === 'usdt' ? 'text-green-600' : 'text-gray-400'
+                        withdrawType === 'usdt' ? 'text-purple-600' : 'text-gray-400'
                       }`} />
                       <div className="font-medium text-sm">USDT 钱包</div>
                       <div className="text-xs text-gray-500 mt-1">
@@ -548,14 +662,14 @@ export const Commission: React.FC = () => {
               <div className="flex space-x-3 mt-6">
                 <button
                   onClick={() => setShowWithdrawModal(false)}
-                  className="btn-secondary flex-1"
+                  className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   取消
                 </button>
                 <button
                   onClick={handleWithdraw}
                   disabled={withdrawing}
-                  className="btn-primary flex-1"
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {withdrawing ? '提交中...' : '确认提现'}
                 </button>

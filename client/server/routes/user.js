@@ -400,7 +400,7 @@ router.get('/commissions', authMiddleware, async (req, res) => {
     
     const totalCommission = commissionIncome.reduce((sum, log) => sum + log.amount, 0);
     
-    // 计算已提现金额（负数记录）
+    // 计算已提现金额（负数记录 - 退还记录）
     const withdrawnLogs = await BalanceLog.find({
       userId: req.user._id,
       type: { $in: ['commission_to_balance', 'commission_withdraw', 'withdraw'] },
@@ -408,7 +408,17 @@ router.get('/commissions', authMiddleware, async (req, res) => {
       amount: { $lt: 0 }
     });
     
-    const totalWithdrawn = withdrawnLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+    // 计算退还金额（正数的退还记录）
+    const refundLogs = await BalanceLog.find({
+      userId: req.user._id,
+      type: { $in: ['refund', 'commission_refund'] },
+      currency: 'commission',
+      amount: { $gt: 0 }
+    });
+    
+    const totalWithdrawnAmount = withdrawnLogs.reduce((sum, log) => sum + Math.abs(log.amount), 0);
+    const totalRefundAmount = refundLogs.reduce((sum, log) => sum + log.amount, 0);
+    const totalWithdrawn = totalWithdrawnAmount - totalRefundAmount; // 实际已提现 = 提现总额 - 退还总额
     const availableCommission = totalCommission - totalWithdrawn;
     
     res.json({

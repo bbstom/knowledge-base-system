@@ -453,22 +453,38 @@ router.post('/admin/reject/:orderId', authMiddleware, adminMiddleware, async (re
 
     // 退还佣金给用户
     const user = order.userId;
+    console.log('Rejecting withdraw order:', {
+      orderId: order._id,
+      orderType: order.type,
+      amount: order.amount,
+      userId: user._id,
+      currentCommission: user.commission
+    });
+
     if (order.type === 'commission') {
-      const commissionBefore = user.commission;
-      user.commission += order.amount;
+      const commissionBefore = user.commission || 0;
+      user.commission = (user.commission || 0) + order.amount;
       await user.save();
+
+      console.log('Commission refunded:', {
+        before: commissionBefore,
+        after: user.commission,
+        refundAmount: order.amount
+      });
 
       // 记录退还日志
       await BalanceLog.create({
         userId: user._id,
-        type: 'refund',
+        type: 'commission_refund',
         currency: 'commission',
         amount: order.amount,
         balanceBefore: commissionBefore,
         balanceAfter: user.commission,
-        description: `提现被拒绝，退还佣金：${reason}`,
+        description: `提现被拒绝，退还佣金：${reason || '无原因'}`,
         orderId: order._id
       });
+    } else {
+      console.warn('Order type is not commission, skipping refund:', order.type);
     }
 
     res.json({
