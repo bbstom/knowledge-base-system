@@ -39,6 +39,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastActivityTime, setLastActivityTime] = useState<number>(Date.now());
 
   // 从API加载用户信息
   const loadUser = async () => {
@@ -60,6 +61,18 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
       const data = await response.json();
       console.log('UserContext - API Response:', data); // 调试信息
+
+      // 检查是否是401未授权错误（token过期或无效）
+      if (response.status === 401 || (data.message && data.message.includes('token'))) {
+        console.log('UserContext - Token expired or invalid, logging out');
+        logout();
+        // 可选：显示提示消息
+        if (typeof window !== 'undefined') {
+          alert('登录已过期，请重新登录');
+          window.location.href = '/login';
+        }
+        return;
+      }
 
       if (data.success && data.user) {
         console.log('UserContext - User data:', data.user); // 调试信息
@@ -126,10 +139,63 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   };
 
+  // 更新最后活动时间
+  const updateActivity = () => {
+    setLastActivityTime(Date.now());
+  };
+
+  // 监听用户活动
+  useEffect(() => {
+    if (!user) return;
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      window.addEventListener(event, updateActivity);
+    });
+
+    return () => {
+      events.forEach(event => {
+        window.removeEventListener(event, updateActivity);
+      });
+    };
+  }, [user]);
+
+  // 检查空闲超时
+  useEffect(() => {
+    if (!user) return;
+
+    const IDLE_TIMEOUT = 60 * 60 * 1000; // 1小时（毫秒）
+    
+    const checkIdleTimeout = setInterval(() => {
+      const idleTime = Date.now() - lastActivityTime;
+      
+      if (idleTime >= IDLE_TIMEOUT) {
+        console.log('User idle timeout - logging out');
+        logout();
+        alert('由于长时间未操作，您已被自动登出，请重新登录');
+        window.location.href = '/login';
+      }
+    }, 60 * 1000); // 每分钟检查一次
+
+    return () => clearInterval(checkIdleTimeout);
+  }, [user, lastActivityTime]);
+
   // 初始加载
   useEffect(() => {
     loadUser();
-  }, []);
+    
+    // 设置定期检查token有效性（每30分钟检查一次）
+    const checkInterval = setInterval(() => {
+      const token = document.cookie.split('token=')[1]?.split(';')[0];
+      if (token && user) {
+        // 静默刷新用户信息，如果token过期会自动登出
+        loadUser();
+      }
+    }, 30 * 60 * 1000); // 30分钟
+
+    return () => clearInterval(checkInterval);
+  }, [user]);
 
   const value = {
     user,
