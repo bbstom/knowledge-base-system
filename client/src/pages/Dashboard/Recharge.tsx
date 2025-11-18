@@ -334,8 +334,8 @@ export const Recharge: React.FC = () => {
 
   return (
     <Layout showSidebar>
-      <div className="p-6">
-        <div className="mb-6">
+      <div className="p-4">
+        <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900">
             {packageInfo ? (packageInfo.type === 'points' ? '购买积分' : '购买VIP') : '账户充值'}
           </h1>
@@ -346,8 +346,8 @@ export const Recharge: React.FC = () => {
 
         {/* 套餐信息显示 */}
         {packageInfo && !currentOrder && (
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
+          <div className="max-w-2xl mx-auto mb-4">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -385,7 +385,7 @@ export const Recharge: React.FC = () => {
         {!currentOrder ? (
           <div className="max-w-2xl mx-auto">
             {/* 充值表单 */}
-            <div className="card mb-6">
+            <div className="card mb-4">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 {packageInfo ? '选择支付方式' : '选择充值金额'}
               </h2>
@@ -453,37 +453,82 @@ export const Recharge: React.FC = () => {
                     汇率更新时间: {new Date(lastRateUpdate).toLocaleString('zh-CN')}
                   </p>
                 )}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <button
                     onClick={() => setCurrency('USDT')}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       currency === 'USDT'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
-                    <div className="font-semibold text-gray-900">USDT (TRC20)</div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      汇率: $1 ≈ {exchangeRates.USDT.toFixed(2)} USDT
-                    </div>
-                    <div className="text-xs text-green-600 mt-1">
-                      ✓ 实时汇率
+                    <div className="flex items-center gap-4">
+                      {/* USDT Logo */}
+                      <div className="flex-shrink-0">
+                        <img 
+                          src="https://cryptologos.cc/logos/tether-usdt-logo.png" 
+                          alt="USDT"
+                          className="w-12 h-12 object-contain"
+                          onError={(e) => {
+                            // 备用方案：如果图片加载失败，显示文字
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden w-12 h-12 rounded-full bg-[#26A17B] flex items-center justify-center text-white font-bold text-lg">
+                          ₮
+                        </div>
+                      </div>
+                      {/* 文字信息 */}
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-gray-900 text-base">USDT</div>
+                        <div className="text-xs text-gray-500 mt-0.5">TRC20</div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          $1 ≈ {exchangeRates.USDT.toFixed(2)} USDT
+                        </div>
+                        <div className="text-xs text-green-600 mt-1">
+                          ✓ 实时汇率
+                        </div>
+                      </div>
                     </div>
                   </button>
+                  
                   <button
                     onClick={() => setCurrency('TRX')}
-                    className={`p-4 rounded-lg border-2 transition-colors ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       currency === 'TRX'
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-md'
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
-                    <div className="font-semibold text-gray-900">TRX (TRC20)</div>
-                    <div className="text-sm text-gray-600 mt-1">
-                      汇率: $1 ≈ {exchangeRates.TRX.toFixed(2)} TRX
-                    </div>
-                    <div className="text-xs text-green-600 mt-1">
-                      ✓ 实时汇率
+                    <div className="flex items-center gap-4">
+                      {/* TRX Logo */}
+                      <div className="flex-shrink-0">
+                        <img 
+                          src="https://cryptologos.cc/logos/tron-trx-logo.png" 
+                          alt="TRX"
+                          className="w-12 h-12 object-contain"
+                          onError={(e) => {
+                            // 备用方案：如果图片加载失败，显示文字
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden w-12 h-12 rounded-full bg-[#FF0013] flex items-center justify-center text-white font-bold text-lg">
+                          T
+                        </div>
+                      </div>
+                      {/* 文字信息 */}
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold text-gray-900 text-base">TRX</div>
+                        <div className="text-xs text-gray-500 mt-0.5">TRC20</div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          $1 ≈ {exchangeRates.TRX.toFixed(2)} TRX
+                        </div>
+                        <div className="text-xs text-green-600 mt-1">
+                          ✓ 实时汇率
+                        </div>
+                      </div>
                     </div>
                   </button>
                 </div>
@@ -699,32 +744,7 @@ export const Recharge: React.FC = () => {
           </div>
         )}
 
-        {/* 充值记录 */}
-        {rechargeHistory.length > 0 && !currentOrder && (
-          <div className="max-w-2xl mx-auto">
-            <div className="card">
-              <h3 className="font-semibold text-gray-900 mb-4">充值记录</h3>
-              <div className="space-y-3">
-                {rechargeHistory.map((record) => (
-                  <div key={record.orderId} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">${record.amount.toFixed(2)}</span>
-                      {getStatusBadge(record.status)}
-                    </div>
-                    <div className="text-sm text-gray-600 space-y-1">
-                      <div>订单号: {record.orderId}</div>
-                      <div>支付: {record.actualAmount} {record.currency}</div>
-                      <div>时间: {new Date(record.createdAt).toLocaleString('zh-CN')}</div>
-                      {record.txHash && (
-                        <div className="text-xs">交易哈希: {record.txHash}</div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* 支付成功对话框 */}
