@@ -45,7 +45,7 @@ sudo cat /etc/nginx/sites-available/frontend
 
 ```bash
 # 从前端服务器测试后端
-curl -v http://backend-server-ip:3001/health
+curl -v http://api.anyconnects.eu.org/health
 
 # 从本地浏览器测试
 # 打开浏览器开发者工具 → Network 标签

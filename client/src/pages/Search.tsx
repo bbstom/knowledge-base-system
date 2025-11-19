@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search as SearchIcon, Database } from 'lucide-react';
+import { Search as SearchIcon, Database, Gift, Users, Calendar, CreditCard, X } from 'lucide-react';
 import { Layout } from '../components/Layout/Layout';
 import { AdCarousel } from '../components/AdCarousel';
 import { searchApi } from '../utils/api';
@@ -17,6 +17,7 @@ export const Search: React.FC = () => {
   const [searchProgress, setSearchProgress] = useState(0);
   const [result, setResult] = useState<any>(null);
   const [advertisements, setAdvertisements] = useState<any[]>([]);
+  const [showInsufficientPointsModal, setShowInsufficientPointsModal] = useState(false);
 
   const searchTypes = [
     { value: 'idcard', label: '身份证', placeholder: '请输入8-25位身份证号', pattern: /^\d{7,24}[a-zA-Z0-9]?$/ },
@@ -139,7 +140,14 @@ export const Search: React.FC = () => {
       }
     } catch (error: any) {
       setSearchProgress(0);
-      toast.error(error.response?.data?.message || '搜索失败');
+      const errorMessage = error.response?.data?.message || error.message || '搜索失败';
+      
+      // 检查是否是积分不足的错误
+      if (errorMessage.includes('积分不足') || errorMessage.includes('insufficient points') || error.response?.data?.code === 'INSUFFICIENT_POINTS') {
+        setShowInsufficientPointsModal(true);
+      } else {
+        toast.error(errorMessage);
+      }
     } finally {
       setTimeout(() => {
         setLoading(false);
@@ -159,6 +167,94 @@ export const Search: React.FC = () => {
             选择搜索类型，输入查询内容开始搜索
           </p>
         </div>
+
+        {/* Insufficient Points Modal */}
+        {showInsufficientPointsModal && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative border-4 border-red-500">
+              <button
+                onClick={() => setShowInsufficientPointsModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                  <CreditCard className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  积分不足
+                </h3>
+                <p className="text-gray-600 text-sm mb-2">
+                  您的积分余额不足以完成此次搜索
+                </p>
+                <p className="text-sm text-red-600 font-medium">
+                  每次搜索需要消耗 1.5 积分
+                </p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <p className="text-sm font-medium text-gray-700 mb-3">
+                  获取积分的方式：
+                </p>
+                
+                <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
+                  <Calendar className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">每日签到</p>
+                    <p className="text-xs text-gray-600">每天签到可获得积分奖励</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 p-3 bg-purple-50 rounded-lg">
+                  <Users className="h-5 w-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">邀请好友</p>
+                    <p className="text-xs text-gray-600">邀请好友注册可获得积分奖励</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
+                  <Gift className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">兑换积分</p>
+                    <p className="text-xs text-gray-600">使用余额兑换积分</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg">
+                  <CreditCard className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">充值中心</p>
+                    <p className="text-xs text-gray-600">充值余额后兑换积分</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowInsufficientPointsModal(false);
+                    navigate('/dashboard/points');
+                  }}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                >
+                  兑换积分
+                </button>
+                <button
+                  onClick={() => {
+                    setShowInsufficientPointsModal(false);
+                    navigate('/dashboard/recharge-center');
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  充值中心
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="card mb-8">
           {/* Search Input */}
