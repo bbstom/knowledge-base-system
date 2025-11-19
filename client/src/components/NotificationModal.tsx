@@ -68,7 +68,8 @@ export const NotificationModal: React.FC = () => {
     }
     
     loadNotifications();
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // 只依赖用户ID，避免用户信息更新时重复加载
 
   const loadNotifications = async () => {
     try {

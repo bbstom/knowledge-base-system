@@ -1,0 +1,663 @@
+<!-- 纯CSS+内联事件的轮播广告 - 兼容React dangerouslySetInnerHTML -->
+<style>
+/* 轮播容器 */
+.ad-carousel-wrapper {
+  width: 100%;
+  max-width: 1280px;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+  margin: 0 auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.carousel-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 60px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.carousel-slide.slide-active {
+  opacity: 1;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* 自动轮播动画 - 使用CSS animation */
+@keyframes slideShow1 {
+  0%, 45% { opacity: 1; z-index: 10; }
+  50%, 100% { opacity: 0; z-index: 1; }
+}
+
+@keyframes slideShow2 {
+  0%, 45% { opacity: 0; z-index: 1; }
+  50%, 95% { opacity: 1; z-index: 10; }
+  100% { opacity: 0; z-index: 1; }
+}
+
+.carousel-slide:nth-child(1) {
+  animation: slideShow1 10s infinite;
+}
+
+.carousel-slide:nth-child(2) {
+  animation: slideShow2 10s infinite;
+}
+
+/* 暂停动画 */
+.ad-carousel-wrapper:hover .carousel-slide {
+  animation-play-state: paused;
+}
+
+/* ========== 样式 A: 赛博朋克蓝金 ========== */
+.slide-cyber {
+  background: linear-gradient(90deg, #020617 0%, #0f172a 100%);
+  border: 1px solid #1e293b;
+}
+
+.slide-cyber .bg-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 1;
+  opacity: 0.3;
+  animation: carousel-gridMove 20s linear infinite;
+}
+
+@keyframes carousel-gridMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(40px); }
+}
+
+.slide-cyber .content {
+  z-index: 10;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.slide-cyber .main-text-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-cyber .sub-tag {
+  color: #22d3ee;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slide-cyber .main-title {
+  font-size: 64px;
+  line-height: 1;
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 20px rgba(34, 211, 238, 0.6);
+  position: relative;
+}
+
+.slide-cyber .main-title::before,
+.slide-cyber .main-title::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #020617;
+}
+
+.slide-cyber .main-title::before {
+  left: 2px;
+  text-shadow: -1px 0 #ff00c1;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: carousel-glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.slide-cyber .main-title::after {
+  left: -2px;
+  text-shadow: -1px 0 #00fff9;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: carousel-glitch-anim2 5s infinite linear alternate-reverse;
+}
+
+@keyframes carousel-glitch-anim {
+  0% { clip: rect(35px, 9999px, 16px, 0); }
+  5% { clip: rect(78px, 9999px, 96px, 0); }
+  100% { clip: rect(66px, 9999px, 32px, 0); }
+}
+
+@keyframes carousel-glitch-anim2 {
+  0% { clip: rect(15px, 9999px, 86px, 0); }
+  5% { clip: rect(48px, 9999px, 26px, 0); }
+  100% { clip: rect(36px, 9999px, 72px, 0); }
+}
+
+.slide-cyber .offer-group {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.slide-cyber .vip-text-box {
+  text-align: right;
+}
+
+.slide-cyber .vip-title {
+  color: #fbbf24;
+  font-size: 42px;
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+  line-height: 1;
+}
+
+.slide-cyber .vip-subtitle {
+  color: #e2e8f0;
+  font-size: 18px;
+  margin-top: 5px;
+}
+
+.slide-cyber .cta-button {
+  background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 800;
+  padding: 15px 40px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.slide-cyber .cta-button:hover {
+  transform: scale(1.05);
+}
+
+.slide-cyber .badge {
+  background-color: #ef4444;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 10px;
+  animation: carousel-pulse 2s infinite;
+}
+
+@keyframes carousel-pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.slide-cyber .decor-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #22d3ee, #fbbf24, #22d3ee);
+}
+
+/* ========== 样式 B: 黑客帝国绿 ========== */
+.slide-matrix {
+  background-color: #050505;
+  border: 1px solid #00ff41;
+  box-shadow: inset 0 0 50px rgba(0, 255, 65, 0.1);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+.slide-matrix .scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(0,255,65,0), rgba(0,255,65,0.2), rgba(0,255,65,0));
+  animation: carousel-scan 4s linear infinite;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes carousel-scan {
+  0% { transform: translateY(-20px); }
+  100% { transform: translateY(220px); }
+}
+
+.slide-matrix .binary-rain {
+  position: absolute;
+  top: -50px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  color: #0f0;
+  font-size: 14px;
+  opacity: 0.15;
+  user-select: none;
+  z-index: 1;
+  white-space: nowrap;
+  animation: carousel-rain 20s linear infinite;
+}
+
+.rain-1 { left: 10%; animation-duration: 15s; }
+.rain-2 { left: 30%; animation-duration: 25s; }
+.rain-3 { left: 60%; animation-duration: 18s; }
+.rain-4 { left: 85%; animation-duration: 22s; }
+
+@keyframes carousel-rain {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+
+.slide-matrix .terminal-prompt {
+  color: #00ff41;
+  font-size: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.slide-matrix .cursor-blink {
+  width: 10px;
+  height: 18px;
+  background-color: #00ff41;
+  animation: carousel-blink 1s step-end infinite;
+}
+
+@keyframes carousel-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.slide-matrix .main-title {
+  font-size: 68px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -2px;
+  line-height: 1;
+  text-shadow: 2px 2px 0px #003300;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+.slide-matrix .main-title span {
+  color: #00ff41;
+}
+
+.slide-matrix .subtitle {
+  color: #888;
+  margin-top: 8px;
+  font-size: 18px;
+}
+
+.slide-matrix .content {
+  z-index: 10;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.slide-matrix .title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-matrix .offer-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  background: rgba(0, 20, 0, 0.6);
+  padding: 15px 30px;
+  border: 1px solid #1a4d1a;
+  border-radius: 4px;
+  backdrop-filter: blur(2px);
+}
+
+.slide-matrix .daily-check-in {
+  text-align: right;
+}
+
+.slide-matrix .check-in-title {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.slide-matrix .check-in-tag {
+  background: #00ff41;
+  color: #000;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-weight: 800;
+}
+
+.slide-matrix .free-forever {
+  color: #00ff41;
+  font-size: 38px;
+  font-weight: 900;
+  font-style: italic;
+  text-shadow: 0 0 10px rgba(0, 255, 65, 0.4);
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.slide-matrix .terminal-btn {
+  background: transparent;
+  color: #00ff41;
+  border: 2px solid #00ff41;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 24px;
+  font-weight: 800;
+  padding: 12px 35px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  box-shadow: 0 0 5px rgba(0,255,65,0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.slide-matrix .terminal-btn:hover {
+  background: #00ff41;
+  color: #000;
+  box-shadow: 0 0 20px rgba(0,255,65,0.6);
+}
+
+/* 响应式 */
+@media (max-width: 1300px) {
+  .carousel-slide {
+    padding: 0 30px;
+  }
+  .slide-cyber .main-title,
+  .slide-matrix .main-title {
+    font-size: 48px;
+  }
+  .slide-cyber .vip-title {
+    font-size: 32px;
+  }
+  .slide-cyber .cta-button {
+    font-size: 20px;
+    padding: 12px 30px;
+  }
+  .slide-matrix .free-forever {
+    font-size: 28px;
+  }
+  .slide-matrix .terminal-btn {
+    font-size: 18px;
+    padding: 10px 25px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ad-carousel-wrapper {
+    height: 140px;
+  }
+  
+  .carousel-slide {
+    padding: 8px 12px;
+  }
+  
+  /* 第一个广告 - 赛博朋克 - 保持横向 */
+  .slide-cyber .content {
+    gap: 10px;
+  }
+  
+  .slide-cyber .main-title {
+    font-size: 20px;
+  }
+  
+  .slide-cyber .sub-tag {
+    font-size: 8px;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+  }
+  
+  .slide-cyber .sub-tag svg {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .slide-cyber .main-title::before,
+  .slide-cyber .main-title::after {
+    display: none;
+  }
+  
+  .slide-cyber .vip-title {
+    font-size: 16px;
+  }
+  
+  .slide-cyber .vip-subtitle {
+    font-size: 9px;
+    margin-top: 2px;
+  }
+  
+  .slide-cyber .badge {
+    font-size: 8px;
+    padding: 2px 6px;
+    margin-left: 4px;
+  }
+  
+  .slide-cyber .offer-group {
+    gap: 10px;
+  }
+  
+  .slide-cyber .cta-button {
+    font-size: 11px;
+    padding: 6px 10px;
+    gap: 4px;
+    white-space: nowrap;
+    min-width: auto;
+  }
+  
+  .slide-cyber .cta-button svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* 第二个广告 - 黑客帝国 - 保持横向 */
+  .slide-matrix .content {
+    gap: 10px;
+  }
+  
+  .slide-matrix .terminal-prompt {
+    font-size: 7px;
+    margin-bottom: 3px;
+  }
+  
+  .slide-matrix .cursor-blink {
+    width: 5px;
+    height: 10px;
+  }
+  
+  .slide-matrix .main-title {
+    font-size: 20px;
+  }
+  
+  .slide-matrix .subtitle {
+    font-size: 8px;
+    margin-top: 3px;
+  }
+  
+  .slide-matrix .offer-container {
+    gap: 10px;
+    padding: 6px 12px;
+  }
+  
+  .slide-matrix .check-in-title {
+    font-size: 11px;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  
+  .slide-matrix .check-in-tag {
+    font-size: 8px;
+    padding: 1px 3px;
+  }
+  
+  .slide-matrix .free-forever {
+    font-size: 14px;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  
+  .slide-matrix .terminal-btn {
+    font-size: 10px;
+    padding: 5px 12px;
+    gap: 4px;
+    white-space: nowrap;
+    min-width: auto;
+  }
+  
+  .slide-matrix .terminal-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* 隐藏一些装饰元素 */
+  .slide-matrix .binary-rain {
+    display: none;
+  }
+  
+  .slide-cyber .bg-grid {
+    opacity: 0.15;
+  }
+  
+  .slide-matrix .scanline {
+    display: none;
+  }
+  
+  .slide-cyber .decor-line {
+    height: 2px;
+  }
+  
+  /* 确保文字不换行 */
+  .slide-cyber .vip-text-box,
+  .slide-matrix .daily-check-in {
+    white-space: nowrap;
+  }
+}
+</style>
+
+<div class="ad-carousel-wrapper">
+  <!-- Slide 1: 赛博朋克蓝金 (VIP优惠) -->
+  <div class="carousel-slide slide-cyber slide-active">
+    <div class="bg-grid"></div>
+    <div class="content">
+      <div class="main-text-group">
+        <div class="sub-tag">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M3 5V19A9 3 0 0 0 21 19V5"></path>
+            <path d="M3 12A9 3 0 0 0 21 12"></path>
+          </svg>
+          DATA SECURITY
+        </div>
+        <div class="main-title" data-text="免费社工库">免费社工库</div>
+        <div style="color: #22d3ee; font-family: monospace; margin-top: 8px; font-size: 18px; letter-spacing: 2px; display: flex; align-items: center; gap: 8px;">
+          <span style="width: 8px; height: 8px; background-color: #22d3ee; border-radius: 50%; animation: carousel-pulse 2s infinite;"></span>
+          全网最新数据源实时更新
+        </div>
+      </div>
+      <div class="offer-group">
+        <div class="vip-text-box">
+          <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 4px;">
+            <span class="badge">限时 3 折</span>
+          </div>
+          <div class="vip-title">VIP 限时优惠</div>
+          <div class="vip-subtitle">解锁高级查询权限 · 包含泄露检测</div>
+        </div>
+        <a href="/dashboard/recharge-center" class="cta-button">
+          立即获取
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="m12 16 4-4-4-4"></path>
+            <path d="M8 12h8"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div class="decor-line"></div>
+  </div>
+
+  <!-- Slide 2: 黑客帝国绿 (每日签到) -->
+  <div class="carousel-slide slide-matrix">
+    <div class="scanline"></div>
+    <div class="binary-rain rain-1">10100100100111001010</div>
+    <div class="binary-rain rain-2">00101110101001011010</div>
+    <div class="binary-rain rain-3">11001010101110010010</div>
+    <div class="binary-rain rain-4">01010100101101010011</div>
+    <div class="content">
+      <div class="title-group">
+        <div class="terminal-prompt">
+          <span>root@SGK-DB:~# ./daily_check_in.sh</span>
+          <div class="cursor-blink"></div>
+        </div>
+        <div class="main-title">免费<span>社工库</span></div>
+        <div class="subtitle">> 每日签到成功... 获取查询点数</div>
+      </div>
+      <div class="offer-container">
+        <div class="daily-check-in">
+          <div class="check-in-title">
+            <span class="check-in-tag">HOT</span>
+            每日签到
+          </div>
+          <div class="free-forever">永久免费使用</div>
+        </div>
+        <a href="/dashboard" class="terminal-btn">
+          <span>立即执行</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手动切换指示点 -->
+  <div style="position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 20;">
+    <div onclick="document.querySelectorAll('.carousel-slide').forEach((s,i) => { s.style.animation = 'none'; s.classList.remove('slide-active'); if(i===0) s.classList.add('slide-active'); }); this.style.background='white'; this.nextElementSibling.style.background='rgba(255,255,255,0.2)';" style="width: 40px; height: 4px; background: white; cursor: pointer; transition: background 0.3s;"></div>
+    <div onclick="document.querySelectorAll('.carousel-slide').forEach((s,i) => { s.style.animation = 'none'; s.classList.remove('slide-active'); if(i===1) s.classList.add('slide-active'); }); this.style.background='white'; this.previousElementSibling.style.background='rgba(255,255,255,0.2)';" style="width: 40px; height: 4px; background: rgba(255,255,255,0.2); cursor: pointer; transition: background 0.3s;"></div>
+  </div>
+</div>

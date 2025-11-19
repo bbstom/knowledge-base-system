@@ -188,14 +188,14 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     // 设置定期检查token有效性（每30分钟检查一次）
     const checkInterval = setInterval(() => {
       const token = document.cookie.split('token=')[1]?.split(';')[0];
-      if (token && user) {
+      if (token) {
         // 静默刷新用户信息，如果token过期会自动登出
         loadUser();
       }
     }, 30 * 60 * 1000); // 30分钟
 
     return () => clearInterval(checkInterval);
-  }, [user]);
+  }, []); // 移除user依赖，只在组件挂载时执行一次
 
   const value = {
     user,
